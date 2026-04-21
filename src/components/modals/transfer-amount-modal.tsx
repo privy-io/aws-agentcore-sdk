@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowLeft, X } from "lucide-react";
 
@@ -22,10 +22,54 @@ export function TransferAmountModal({
   chain,
   onConnect,
 }: TransferAmountModalProps) {
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState("0");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const chainName = chain === "base" ? "Base" : "Solana";
   const amountIsValid = parseFloat(amount) > 0;
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    let input = e.target.value;
+
+    // Strip non-numeric characters except decimal point
+    input = input.replace(/[^\d.]/g, "");
+
+    // Keep only the first decimal point, remove any extras
+    const parts = input.split(".");
+    if (parts.length > 2) {
+      input = parts[0] + "." + parts.slice(1).join("");
+    }
+
+    // Limit to 2 decimal places
+    if (parts.length === 2 && parts[1]!.length > 2) {
+      input = `${parts[0]}.${parts[1]!.slice(0, 2)}`;
+    }
+
+    // Strip leading zeros (but keep "0." for decimal input)
+    if (input.length > 1 && input[0] === "0" && input[1] !== ".") {
+      input = input.slice(1);
+    }
+
+    // Default to "0" for empty or lone decimal input
+    if (input === "" || input === ".") {
+      input = "0";
+    }
+
+    setAmount(input);
+  }, []);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    const allowed = [
+      "Delete", "Backspace", "Tab", "Escape", "Enter", ".",
+      "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End",
+    ];
+
+    if (allowed.includes(e.key)) return;
+    if ((e.ctrlKey || e.metaKey) && ["a", "c", "v", "x"].includes(e.key.toLowerCase())) return;
+    if (e.key >= "0" && e.key <= "9") return;
+
+    e.preventDefault();
+  }, []);
 
   function handleConnect() {
     if (!amountIsValid) return;
@@ -70,30 +114,41 @@ export function TransferAmountModal({
             </Dialog.Description>
           </div>
 
-          {/* Amount input + network badge + button */}
-          <div className="flex flex-col gap-4 px-6 py-6">
-            {/* Amount input */}
-            <div className="flex items-center gap-3 rounded-xl border border-[#e2e3f0] px-4 py-3 focus-within:border-[#040217]">
-              <input
-                type="number"
-                min="0"
-                step="any"
-                placeholder="0.00"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full bg-transparent text-lg font-medium text-[#040217] outline-none placeholder:text-[#c0c2d8] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-              />
-              <span className="shrink-0 text-sm font-medium text-[#64668b]">USDC</span>
-            </div>
+          {/* Amount input — Privy-style large centered number with hidden input */}
+          <div
+            className="flex w-full cursor-pointer items-start justify-center py-8"
+            onClick={() => inputRef.current?.focus()}
+          >
+            {/* Currency symbol — small, top-aligned to the number */}
+            <span className="mt-3 text-base font-semibold text-[#040217]">$</span>
+            {/* Large number display */}
+            <span className="text-[3.75rem] font-semibold leading-[5.375rem] tracking-tight text-[#040217]">
+              {amount}
+            </span>
+            {/* Hidden input — captures all keystrokes */}
+            <input
+              ref={inputRef}
+              type="text"
+              inputMode="decimal"
+              value={amount}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              autoFocus
+              aria-label="Amount in USDC"
+              style={{ width: 1, height: "1rem", opacity: 0, alignSelf: "center", fontSize: "1rem" }}
+            />
+            {/* Invisible symbol to balance the layout */}
+            <span className="mt-3 text-base font-semibold opacity-0">$</span>
+          </div>
 
-            {/* Network badge */}
+          {/* Network badge + button */}
+          <div className="flex flex-col gap-4 px-6 pb-6">
             <div className="flex items-center justify-center">
               <span className="rounded-full bg-[#f1f2f9] px-3 py-1.5 text-xs font-medium text-[#64668b]">
                 Sending on {chainName}
               </span>
             </div>
 
-            {/* Connect wallet button */}
             <button
               type="button"
               onClick={handleConnect}
