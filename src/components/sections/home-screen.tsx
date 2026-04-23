@@ -18,6 +18,7 @@ import { toChainType } from "@/lib/chain";
 
 export default function AuthenticatedHome() {
   const [agentConnected, setAgentConnected] = useState(false);
+  const [signerCheckLoading, setSignerCheckLoading] = useState(true);
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
   const [showFunding, setShowFunding] = useState(false);
@@ -35,7 +36,10 @@ export default function AuthenticatedHome() {
     const walletIds = privyWallets
       .map((w) => w.id)
       .filter((id): id is string => Boolean(id));
-    if (walletIds.length === 0) return;
+    if (walletIds.length === 0) {
+      setSignerCheckLoading(false);
+      return;
+    }
 
     fetch("/api/check-signers", {
       method: "POST",
@@ -48,6 +52,9 @@ export default function AuthenticatedHome() {
       })
       .catch(() => {
         // Signer check failed — agent treated as disconnected until next load.
+      })
+      .finally(() => {
+        setSignerCheckLoading(false);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
@@ -84,8 +91,10 @@ export default function AuthenticatedHome() {
 
       {/* Page content */}
       <div className="mx-auto w-full max-w-3xl px-4 py-10 lg:px-8">
-        {/* Complete setup — hidden once all steps are done */}
-        {!(agentConnected && hasFunds) && (
+        {/* Complete setup — hidden once all steps are done.
+            Deferred until both /api/check-signers and /api/balances have
+            resolved at least once to avoid a flash on every page load. */}
+        {!signerCheckLoading && !balancesLoading && !(agentConnected && hasFunds) && (
           <section>
             <h1 className="text-2xl font-semibold tracking-[-0.019em] text-[#040217]">
               Complete setup
@@ -119,12 +128,17 @@ export default function AuthenticatedHome() {
         )}
 
         {/* Your wallets */}
-        <section className={agentConnected && hasFunds ? "" : "mt-14"}>
+        <section className={!signerCheckLoading && !balancesLoading && !(agentConnected && hasFunds) ? "mt-14" : ""}>
           <h2 className="text-2xl font-semibold tracking-[-0.019em] text-[#040217]">
             Your wallets
           </h2>
 
           <div className="mt-3 flex flex-col gap-3">
+            {/* A user may have more than one Privy wallet per chain if AgentCore
+                provisioned a separate Solana wallet via CreatePaymentInstrument
+                (which does not reuse the wallet Privy auto-created on first login).
+                Both wallets appear here; only the AgentCore-backed one will have a
+                signer after "Connect agent" completes. */}
             {privyWallets.map((wallet) => (
               <WalletBalanceCard
                 key={wallet.address}

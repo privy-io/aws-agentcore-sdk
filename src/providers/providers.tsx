@@ -18,10 +18,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         plugins: [defaultSolanaRpcsPlugin()],
         embeddedWallets: {
           ethereum: {
-            createOnLogin: "users-without-wallets",
+            createOnLogin: "off",
           },
           solana: {
-            createOnLogin: "users-without-wallets",
+            createOnLogin: "off",
           },
         },
         loginMethods: ["google", "email", "sms"],
