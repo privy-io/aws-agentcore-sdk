@@ -58,18 +58,35 @@ export function TransferAmountModal({
     setAmount(input);
   }, []);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    const allowed = [
-      "Delete", "Backspace", "Tab", "Escape", "Enter", ".",
-      "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End",
-    ];
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      const allowed = [
+        "Delete",
+        "Backspace",
+        "Tab",
+        "Escape",
+        "Enter",
+        ".",
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowUp",
+        "ArrowDown",
+        "Home",
+        "End",
+      ];
 
-    if (allowed.includes(e.key)) return;
-    if ((e.ctrlKey || e.metaKey) && ["a", "c", "v", "x"].includes(e.key.toLowerCase())) return;
-    if (e.key >= "0" && e.key <= "9") return;
+      if (allowed.includes(e.key)) return;
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        ["a", "c", "v", "x"].includes(e.key.toLowerCase())
+      )
+        return;
+      if (e.key >= "0" && e.key <= "9") return;
 
-    e.preventDefault();
-  }, []);
+      e.preventDefault();
+    },
+    [],
+  );
 
   function handleConnect() {
     if (!amountIsValid) return;
@@ -77,12 +94,11 @@ export function TransferAmountModal({
   }
 
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+    <Dialog.Root modal={false} open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[100] bg-black/10 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
 
         <Dialog.Content className="fixed left-1/2 top-1/2 z-[100] w-[360px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-[0px_8px_36px_rgba(55,65,81,0.15)] duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
-
           {/* Header */}
           <div className="flex items-center justify-between p-4">
             <button
@@ -120,7 +136,9 @@ export function TransferAmountModal({
             onClick={() => inputRef.current?.focus()}
           >
             {/* Currency symbol — small, top-aligned to the number */}
-            <span className="mt-3 text-base font-semibold text-[#040217]">$</span>
+            <span className="mt-3 text-base font-semibold text-[#040217]">
+              $
+            </span>
             {/* Large number display */}
             <span className="text-[3.75rem] font-semibold leading-[5.375rem] tracking-tight text-[#040217]">
               {amount}
@@ -135,7 +153,13 @@ export function TransferAmountModal({
               onKeyDown={handleKeyDown}
               autoFocus
               aria-label="Amount in USDC"
-              style={{ width: 1, height: "1rem", opacity: 0, alignSelf: "center", fontSize: "1rem" }}
+              style={{
+                width: 1,
+                height: "1rem",
+                opacity: 0,
+                alignSelf: "center",
+                fontSize: "1rem",
+              }}
             />
             {/* Invisible symbol to balance the layout */}
             <span className="mt-3 text-base font-semibold opacity-0">$</span>
