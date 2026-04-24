@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createPublicClient, http, parseAbi } from "viem";
-import { base } from "viem/chains";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { type PositionView } from "@/types/wallet";
-import { BASE_USDC_ADDRESS, SOLANA_USDC_MINT, SOLANA_MAINNET_RPC } from "@/lib/constants";
+import { network } from "@/lib/network";
 
 const USDC_DECIMALS = 6;
 
 const baseClient = createPublicClient({
-  chain: base,
+  chain: network.base.chain,
   transport: http(),
 });
 
-const solanaConnection = new Connection(SOLANA_MAINNET_RPC);
+const solanaConnection = new Connection(network.solana.rpcUrl);
 
 const erc20Abi = parseAbi([
   "function balanceOf(address account) view returns (uint256)",
@@ -21,7 +20,7 @@ const erc20Abi = parseAbi([
 
 async function getBaseUsdcBalance(address: string): Promise<PositionView[]> {
   const raw = await baseClient.readContract({
-    address: BASE_USDC_ADDRESS,
+    address: network.base.usdc,
     abi: erc20Abi,
     functionName: "balanceOf",
     args: [address as `0x${string}`],
@@ -31,7 +30,7 @@ async function getBaseUsdcBalance(address: string): Promise<PositionView[]> {
 }
 
 async function getSolanaUsdcBalance(address: string): Promise<PositionView[]> {
-  const mint = new PublicKey(SOLANA_USDC_MINT);
+  const mint = new PublicKey(network.solana.usdcMint);
   const owner = new PublicKey(address);
   const tokenAccount = getAssociatedTokenAddressSync(mint, owner);
 

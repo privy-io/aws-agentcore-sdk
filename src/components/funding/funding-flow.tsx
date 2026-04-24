@@ -3,7 +3,21 @@
 import { useRef, useState } from "react";
 import { useConnectWallet, type EIP1193Provider, type WalletWithMetadata } from "@privy-io/react-auth";
 import { createWalletClient, custom, encodeFunctionData, parseUnits } from "viem";
-import { base } from "viem/chains";
+import { Connection, PublicKey, Transaction } from "@solana/web3.js";
+import {
+  createAssociatedTokenAccountInstruction,
+  createTransferInstruction,
+  getAccount,
+  getAssociatedTokenAddressSync,
+} from "@solana/spl-token";
+
+import { WalletPickerModal } from "@/components/modals/wallet-picker-modal";
+import { FundingMethodModal, type FundingMethod } from "@/components/modals/funding-method-modal";
+import { ReceiveFundsModal } from "@/components/modals/receive-funds-modal";
+import { TransferAmountModal } from "@/components/modals/transfer-amount-modal";
+import { TransferPendingModal, type TransferStatus } from "@/components/modals/transfer-pending-modal";
+import { type ChainType } from "@/types/wallet";
+import { network, STRIPE_ONRAMP_BASE_NETWORK } from "@/lib/network";
 
 // Minimal duck-typed interfaces for connected wallet providers
 type EvmWallet = {
@@ -19,21 +33,6 @@ type SolanaWallet = {
     }) => Promise<{ signature: Uint8Array }>;
   };
 };
-import { Connection, PublicKey, Transaction } from "@solana/web3.js";
-import {
-  createAssociatedTokenAccountInstruction,
-  createTransferInstruction,
-  getAccount,
-  getAssociatedTokenAddressSync,
-} from "@solana/spl-token";
-
-import { WalletPickerModal } from "@/components/modals/wallet-picker-modal";
-import { FundingMethodModal, type FundingMethod } from "@/components/modals/funding-method-modal";
-import { ReceiveFundsModal } from "@/components/modals/receive-funds-modal";
-import { TransferAmountModal } from "@/components/modals/transfer-amount-modal";
-import { TransferPendingModal, type TransferStatus } from "@/components/modals/transfer-pending-modal";
-import { type ChainType } from "@/types/wallet";
-import { BASE_USDC_ADDRESS, SOLANA_USDC_MINT, SOLANA_MAINNET_RPC } from "@/lib/constants";
 
 const ERC20_TRANSFER_ABI = [
   {
@@ -50,17 +49,18 @@ const ERC20_TRANSFER_ABI = [
 
 async function executeEvmTransfer(wallet: EvmWallet, amount: string, to: string) {
   const provider = await wallet.getEthereumProvider();
+  const chain = network.base.chain;
   const walletClient = createWalletClient({
     transport: custom(provider),
-    chain: base,
+    chain,
     account: wallet.address as `0x${string}`,
   });
 
   try {
-    await walletClient.switchChain({ id: base.id });
+    await walletClient.switchChain({ id: chain.id });
   } catch {
-    await walletClient.addChain({ chain: base });
-    await walletClient.switchChain({ id: base.id });
+    await walletClient.addChain({ chain });
+    await walletClient.switchChain({ id: chain.id });
   }
 
   const data = encodeFunctionData({
@@ -70,17 +70,17 @@ async function executeEvmTransfer(wallet: EvmWallet, amount: string, to: string)
   });
 
   await walletClient.sendTransaction({
-    to: BASE_USDC_ADDRESS,
+    to: network.base.usdc,
     data,
     value: BigInt(0),
   });
 }
 
 async function executeSolanaTransfer(wallet: SolanaWallet, amount: string, to: string) {
-  const connection = new Connection(SOLANA_MAINNET_RPC, "confirmed");
+  const connection = new Connection(network.solana.rpcUrl, "confirmed");
   const fromPubkey = new PublicKey(wallet.address);
   const toPubkey = new PublicKey(to);
-  const mintPubkey = new PublicKey(SOLANA_USDC_MINT);
+  const mintPubkey = new PublicKey(network.solana.usdcMint);
 
   const fromATA = getAssociatedTokenAddressSync(mintPubkey, fromPubkey);
   const toATA = getAssociatedTokenAddressSync(mintPubkey, toPubkey);
@@ -104,7 +104,7 @@ async function executeSolanaTransfer(wallet: SolanaWallet, amount: string, to: s
 
   await wallet.provider.signAndSendTransaction({
     transaction: tx.serialize({ requireAllSignatures: false }),
-    chain: "solana:mainnet",
+    chain: network.solana.cluster,
   });
 }
 
@@ -186,9 +186,12 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
 
     switch (method) {
       case "card": {
+        // Card is mainnet-only; modal disables the button in testnet — guard anyway.
+        if (network.isTestnet) return;
         const params = new URLSearchParams({
           destination_currency: "usdc",
-          destination_network: selectedWallet.chain,
+          destination_network:
+            selectedWallet.chain === "base" ? STRIPE_ONRAMP_BASE_NETWORK : "solana",
         });
         handleClose();
         window.open(`https://crypto.link.com/?${params.toString()}`, "_blank", "noopener,noreferrer");
@@ -229,6 +232,7 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
         }}
         onBack={handleBack}
         onSelect={handleMethodSelect}
+        selectedChain={selectedWallet?.chain ?? null}
       />
 
       {selectedWallet && (

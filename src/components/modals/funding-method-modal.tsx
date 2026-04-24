@@ -3,6 +3,8 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowLeft, CreditCard, Inbox, QrCode, X } from "lucide-react";
 import { PrivyBadge } from "@/components/ui/privy-badge";
+import { network } from "@/lib/network";
+import { type ChainType } from "@/types/wallet";
 
 export type FundingMethod = "card" | "transfer" | "receive";
 
@@ -11,19 +13,52 @@ type FundingMethodModalProps = {
   onOpenChange: (open: boolean) => void;
   onBack: () => void;
   onSelect: (method: FundingMethod) => void;
+  /** Chain picked in the previous step — drives network-aware subtitles. */
+  selectedChain: ChainType | null;
 };
 
-const FUNDING_METHODS = [
-  { method: "card" as FundingMethod, label: "Pay with card", icon: CreditCard },
-  { method: "transfer" as FundingMethod, label: "Transfer from wallet", icon: Inbox },
-  { method: "receive" as FundingMethod, label: "Receive funds", icon: QrCode },
+type MethodDef = {
+  method: FundingMethod;
+  label: string;
+  icon: typeof CreditCard;
+};
+
+const METHOD_DEFS: readonly MethodDef[] = [
+  { method: "card", label: "Pay with card", icon: CreditCard },
+  { method: "transfer", label: "Transfer from wallet", icon: Inbox },
+  { method: "receive", label: "Receive funds", icon: QrCode },
 ] as const;
+
+function chainLabel(chain: ChainType | null): string {
+  if (chain === "base") return network.base.label;
+  if (chain === "solana") return network.solana.label;
+  return "";
+}
+
+function subtitleFor(method: FundingMethod, chain: ChainType | null): string {
+  const label = chainLabel(chain);
+  switch (method) {
+    case "card":
+      return network.isTestnet
+        ? "Not available in testnet"
+        : `USDC on ${label}`;
+    case "transfer":
+      return `Send USDC on ${label} from an external wallet`;
+    case "receive":
+      return `Share an address or QR code on ${label}`;
+  }
+}
+
+function isDisabled(method: FundingMethod): boolean {
+  return method === "card" && network.isTestnet;
+}
 
 export function FundingMethodModal({
   open,
   onOpenChange,
   onBack,
   onSelect,
+  selectedChain,
 }: FundingMethodModalProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -65,19 +100,36 @@ export function FundingMethodModal({
 
           {/* Method buttons */}
           <div className="flex flex-col gap-3 px-6 pb-6 pt-6">
-            {FUNDING_METHODS.map(({ method, label, icon: Icon }) => (
-              <button
-                key={method}
-                type="button"
-                onClick={() => onSelect(method)}
-                className="flex min-h-[56px] w-full items-center gap-3 rounded-xl border border-[#e2e3f0] px-3 py-2.5 text-left transition-colors hover:bg-[#f8f9fc]"
-              >
-                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl">
-                  <Icon className="size-5 text-[#64668b]" />
-                </div>
-                <span className="text-[15px] font-medium text-[#040217]">{label}</span>
-              </button>
-            ))}
+            {METHOD_DEFS.map(({ method, label, icon: Icon }) => {
+              const disabled = isDisabled(method);
+              const subtitle = subtitleFor(method, selectedChain);
+              return (
+                <button
+                  key={method}
+                  type="button"
+                  onClick={() => !disabled && onSelect(method)}
+                  disabled={disabled}
+                  aria-disabled={disabled}
+                  title={disabled ? subtitle : undefined}
+                  className={
+                    "flex min-h-[56px] w-full items-center gap-3 rounded-xl border border-[#e2e3f0] px-3 py-2.5 text-left transition-colors " +
+                    (disabled
+                      ? "cursor-not-allowed opacity-50"
+                      : "hover:bg-[#f8f9fc]")
+                  }
+                >
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xl">
+                    <Icon className="size-5 text-[#64668b]" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[15px] font-medium text-[#040217]">{label}</span>
+                    {subtitle && (
+                      <span className="text-xs text-[#64668b]">{subtitle}</span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
           <PrivyBadge />
         </Dialog.Content>

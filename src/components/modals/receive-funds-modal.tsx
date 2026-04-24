@@ -7,7 +7,7 @@ import { ArrowLeft, X } from "lucide-react";
 import { CopyButton } from "@/components/ui/copy-button";
 import { PrivyBadge } from "@/components/ui/privy-badge";
 import { type ChainType } from "@/types/wallet";
-import { SOLANA_USDC_MINT } from "@/lib/constants";
+import { network } from "@/lib/network";
 
 type ReceiveFundsModalProps = {
   open: boolean;
@@ -19,9 +19,12 @@ type ReceiveFundsModalProps = {
 
 function buildQrValue(address: string, chain: ChainType): string {
   if (chain === "solana") {
-    return `solana:${address}?spl-token=${SOLANA_USDC_MINT}`;
+    // Solana Pay SPL-token URI. Mint changes per network; address is the same.
+    return `solana:${address}?spl-token=${network.solana.usdcMint}`;
   }
-  return `ethereum:${address}`;
+  // EIP-681: including the chain ID ensures wallets targeting Base mainnet vs
+  // Base Sepolia don't accidentally send on the wrong chain.
+  return `ethereum:${address}@${network.base.chain.id}`;
 }
 
 function truncateAddress(address: string): string {
@@ -35,7 +38,7 @@ export function ReceiveFundsModal({
   address,
   chain,
 }: ReceiveFundsModalProps) {
-  const chainName = chain === "base" ? "Base" : "Solana";
+  const chainLabel = chain === "base" ? network.base.specificLabel : network.solana.specificLabel;
   const qrValue = buildQrValue(address, chain);
 
   return (
@@ -72,7 +75,7 @@ export function ReceiveFundsModal({
               Receive USDC
             </Dialog.Title>
             <Dialog.Description className="text-sm text-[#64668b]">
-              Scan this code or copy your wallet address to receive funds on {chainName}.
+              Scan this code or copy your wallet address to receive funds on {chainLabel}.
             </Dialog.Description>
           </div>
 
@@ -86,7 +89,7 @@ export function ReceiveFundsModal({
           {/* Network warning */}
           <div className="mx-6 mt-4 rounded-xl bg-[#f1f2f9] px-4 py-3">
             <p className="text-center text-xs text-[#64668b]">
-              Make sure to send funds on {chainName}.
+              Make sure to send funds on {chainLabel}.
             </p>
           </div>
 

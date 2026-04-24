@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { type WalletWithMetadata } from "@privy-io/react-auth";
 import { type ChainType } from "@/types/wallet";
 import { toChainType } from "@/lib/chain";
+import { network } from "@/lib/network";
 import { PrivyBadge } from "@/components/ui/privy-badge";
 
 type WalletPickerModalProps = {
@@ -57,7 +58,7 @@ export function WalletPickerModal({
               <div className="flex w-full flex-col gap-3">
                 {wallets.map((wallet) => {
                   const chain: ChainType = toChainType(wallet.chainType);
-                  const label = chain === "base" ? "Base" : "Solana";
+                  const label = chain === "base" ? network.base.label : network.solana.label;
                   return (
                     <button
                       key={wallet.address}
