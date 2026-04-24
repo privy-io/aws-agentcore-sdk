@@ -58,36 +58,6 @@ export function TransferAmountModal({
     setAmount(input);
   }, []);
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      const allowed = [
-        "Delete",
-        "Backspace",
-        "Tab",
-        "Escape",
-        "Enter",
-        ".",
-        "ArrowLeft",
-        "ArrowRight",
-        "ArrowUp",
-        "ArrowDown",
-        "Home",
-        "End",
-      ];
-
-      if (allowed.includes(e.key)) return;
-      if (
-        (e.ctrlKey || e.metaKey) &&
-        ["a", "c", "v", "x"].includes(e.key.toLowerCase())
-      )
-        return;
-      if (e.key >= "0" && e.key <= "9") return;
-
-      e.preventDefault();
-    },
-    [],
-  );
-
   function handleConnect() {
     if (!amountIsValid) return;
     onConnect(amount);
@@ -150,7 +120,6 @@ export function TransferAmountModal({
               inputMode="decimal"
               value={amount}
               onChange={handleChange}
-              onKeyDown={handleKeyDown}
               autoFocus
               aria-label="Amount in USDC"
               style={{
