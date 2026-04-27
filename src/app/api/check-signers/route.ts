@@ -39,5 +39,5 @@ export async function POST(req: NextRequest) {
     }),
   );
 
-  return NextResponse.json({ connected: results.some(Boolean) });
+  return NextResponse.json({ connected: results.every(Boolean) });
 }

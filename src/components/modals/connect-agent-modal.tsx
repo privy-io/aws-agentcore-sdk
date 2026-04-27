@@ -57,8 +57,10 @@ export function ConnectAgentModal({
             signers: [{ signerId, policyIds: [] }],
           }).catch((err: unknown) => {
             const msg = err instanceof Error ? err.message : String(err);
-            // Privy throws "signer already exists" if the signer was previously
-            // added — treat that as a success rather than an error.
+            // addSessionSigners is idempotent from the caller's perspective:
+            // Privy throws "signer already exists" when the signer was previously
+            // added — suppressing that error makes it safe to re-call this for
+            // wallets that are already covered (e.g. after a new wallet is provisioned).
             if (!msg.toLowerCase().includes("already")) throw err;
           }),
         ),
