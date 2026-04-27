@@ -14,7 +14,6 @@ import {
   encodeFunctionData,
   parseUnits,
 } from "viem";
-import { base } from "viem/chains";
 import bs58 from "bs58";
 
 // Minimal duck-typed interfaces for connected wallet providers
@@ -47,11 +46,7 @@ import {
   type TransferStatus,
 } from "@/components/modals/transfer-pending-modal";
 import { type ChainType } from "@/types/wallet";
-import {
-  BASE_USDC_ADDRESS,
-  SOLANA_USDC_MINT,
-  SOLANA_MAINNET_RPC,
-} from "@/lib/constants";
+import { network, STRIPE_ONRAMP_BASE_NETWORK } from "@/lib/network";
 
 const ERC20_TRANSFER_ABI = [
   {
@@ -72,17 +67,18 @@ async function executeEvmTransfer(
   to: string,
 ) {
   const provider = await wallet.getEthereumProvider();
+  const chain = network.base.chain;
   const walletClient = createWalletClient({
     transport: custom(provider),
-    chain: base,
+    chain,
     account: wallet.address as `0x${string}`,
   });
 
   try {
-    await walletClient.switchChain({ id: base.id });
+    await walletClient.switchChain({ id: chain.id });
   } catch {
-    await walletClient.addChain({ chain: base });
-    await walletClient.switchChain({ id: base.id });
+    await walletClient.addChain({ chain });
+    await walletClient.switchChain({ id: chain.id });
   }
 
   const data = encodeFunctionData({
@@ -92,7 +88,7 @@ async function executeEvmTransfer(
   });
 
   await walletClient.sendTransaction({
-    to: BASE_USDC_ADDRESS,
+    to: network.base.usdc,
     data,
     value: BigInt(0),
   });
@@ -100,7 +96,7 @@ async function executeEvmTransfer(
 
 function browserSolanaRpcEndpoint(): string {
   if (typeof window === "undefined") {
-    return SOLANA_MAINNET_RPC;
+    return network.solana.rpcUrl;
   }
   return `${window.location.origin}/api/solana-rpc`;
 }
@@ -156,7 +152,7 @@ async function executeSolanaTransfer(
   const connection = new Connection(browserSolanaRpcEndpoint(), "confirmed");
   const fromPubkey = new PublicKey(wallet.address);
   const toPubkey = new PublicKey(to);
-  const mintPubkey = new PublicKey(SOLANA_USDC_MINT);
+  const mintPubkey = new PublicKey(network.solana.usdcMint);
 
   const fromATA = getAssociatedTokenAddressSync(mintPubkey, fromPubkey);
   const toATA = getAssociatedTokenAddressSync(mintPubkey, toPubkey);
@@ -222,7 +218,7 @@ async function executeSolanaTransfer(
   const { signature } = await signAndSendTransaction({
     transaction: tx.serialize({ requireAllSignatures: false }),
     wallet: wallet.provider as never,
-    chain: "solana:mainnet",
+    chain: network.solana.cluster,
   });
 
   const signatureBase58 = toSignatureBase58(signature);
@@ -264,7 +260,7 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
   const signAndSendRef = useRef(signAndSendTransaction);
   signAndSendRef.current = signAndSendTransaction;
 
-  /** True while Privy `connectWallet` is resolving (Phantom) — inner dialogs must not call `handleClose`. */
+  /** True while Privy `connectWallet` is resolving — inner dialogs must not call `handleClose`. */
   const connectWalletDismissLockRef = useRef(false);
   /** True briefly after `setStep` closes a child dialog so Radix `onOpenChange(false)` does not end the flow. */
   const stepTransitionDismissLockRef = useRef(false);
@@ -375,9 +371,12 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
 
     switch (method) {
       case "card": {
+        // Card is mainnet-only; modal disables the button in testnet — guard anyway.
+        if (network.isTestnet) return;
         const params = new URLSearchParams({
           destination_currency: "usdc",
-          destination_network: selectedWallet.chain,
+          destination_network:
+            selectedWallet.chain === "base" ? STRIPE_ONRAMP_BASE_NETWORK : "solana",
         });
         handleClose();
         window.open(
@@ -426,6 +425,7 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
         onClose={handleClose}
         onBack={handleBack}
         onSelect={handleMethodSelect}
+        selectedChain={selectedWallet?.chain ?? null}
       />
 
       {selectedWallet && (
