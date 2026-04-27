@@ -260,7 +260,7 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
   const signAndSendRef = useRef(signAndSendTransaction);
   signAndSendRef.current = signAndSendTransaction;
 
-  /** True while Privy `connectWallet` is resolving (Phantom) — inner dialogs must not call `handleClose`. */
+  /** True while Privy `connectWallet` is resolving — inner dialogs must not call `handleClose`. */
   const connectWalletDismissLockRef = useRef(false);
   /** True briefly after `setStep` closes a child dialog so Radix `onOpenChange(false)` does not end the flow. */
   const stepTransitionDismissLockRef = useRef(false);
