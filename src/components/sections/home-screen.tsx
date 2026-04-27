@@ -19,6 +19,7 @@ import { toChainType } from "@/lib/chain";
 
 export default function AuthenticatedHome() {
   const [agentConnected, setAgentConnected] = useState(false);
+  const [signerCheckLoading, setSignerCheckLoading] = useState(true);
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
   const [showFunding, setShowFunding] = useState(false);
@@ -36,7 +37,10 @@ export default function AuthenticatedHome() {
     const walletIds = privyWallets
       .map((w) => w.id)
       .filter((id): id is string => Boolean(id));
-    if (walletIds.length === 0) return;
+    if (walletIds.length === 0) {
+      setSignerCheckLoading(false);
+      return;
+    }
 
     fetch("/api/check-signers", {
       method: "POST",
@@ -49,6 +53,9 @@ export default function AuthenticatedHome() {
       })
       .catch(() => {
         // Signer check failed — agent treated as disconnected until next load.
+      })
+      .finally(() => {
+        setSignerCheckLoading(false);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
@@ -86,42 +93,54 @@ export default function AuthenticatedHome() {
 
       {/* Page content */}
       <div className="mx-auto w-full max-w-3xl px-4 py-10 lg:px-8">
-        {/* Complete setup — hidden once all steps are done */}
-        {!(agentConnected && hasFunds) && (
-          <section>
-            <h1 className="text-2xl font-semibold tracking-[-0.019em] text-[#040217]">
-              Complete setup
-            </h1>
+        {/* Complete setup — hidden once all steps are done.
+            Deferred until both /api/check-signers and /api/balances have
+            resolved at least once to avoid a flash on every page load. */}
+        {!signerCheckLoading &&
+          !balancesLoading &&
+          !(agentConnected && hasFunds) && (
+            <section>
+              <h1 className="text-2xl font-semibold tracking-[-0.019em] text-[#040217]">
+                Complete setup
+              </h1>
 
-            <div className="mt-3 grid gap-3 md:grid-cols-3">
-              <SetupCard
-                title="Create wallets"
-                description="Set up your account and create your crypto wallets."
-                icon={<Check className="size-5 text-[#040217]" />}
-                completed
-              />
-              <SetupCard
-                title="Connect agent"
-                description="Give your agent permission to transact using your wallets."
-                icon={<Bot className="size-5 text-[#040217]" />}
-                completed={agentConnected}
-                onClick={
-                  agentConnected ? undefined : () => setShowConnectModal(true)
-                }
-              />
-              <SetupCard
-                title="Add funds"
-                description="Fund either one of your wallets so your agent could use it."
-                icon={<CircleDollarSign className="size-5 text-[#040217]" />}
-                completed={hasFunds}
-                onClick={hasFunds ? undefined : () => setShowFunding(true)}
-              />
-            </div>
-          </section>
-        )}
+              <div className="mt-3 grid gap-3 md:grid-cols-3">
+                <SetupCard
+                  title="Create wallets"
+                  description="Set up your account and create your crypto wallets."
+                  icon={<Check className="size-5 text-[#040217]" />}
+                  completed
+                />
+                <SetupCard
+                  title="Connect agent"
+                  description="Give your agent permission to transact using your wallets."
+                  icon={<Bot className="size-5 text-[#040217]" />}
+                  completed={agentConnected}
+                  onClick={
+                    agentConnected ? undefined : () => setShowConnectModal(true)
+                  }
+                />
+                <SetupCard
+                  title="Add funds"
+                  description="Fund either one of your wallets so your agent could use it."
+                  icon={<CircleDollarSign className="size-5 text-[#040217]" />}
+                  completed={hasFunds}
+                  onClick={hasFunds ? undefined : () => setShowFunding(true)}
+                />
+              </div>
+            </section>
+          )}
 
         {/* Your wallets */}
-        <section className={agentConnected && hasFunds ? "" : "mt-14"}>
+        <section
+          className={
+            !signerCheckLoading &&
+            !balancesLoading &&
+            !(agentConnected && hasFunds)
+              ? "mt-14"
+              : ""
+          }
+        >
           <h2 className="text-2xl font-semibold tracking-[-0.019em] text-[#040217]">
             Your wallets
           </h2>

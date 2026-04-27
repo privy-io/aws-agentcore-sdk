@@ -1,7 +1,10 @@
 "use client";
 
 import { PrivyProvider } from "@privy-io/react-auth";
-import { toSolanaWalletConnectors } from "@privy-io/react-auth/solana";
+import {
+  toSolanaWalletConnectors,
+  defaultSolanaRpcsPlugin,
+} from "@privy-io/react-auth/solana";
 import { env } from "@/lib/env";
 
 const AWS_HOSTED_LOGO_URL =
@@ -12,9 +15,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <PrivyProvider
       appId={env.privyAppId}
       config={{
+        plugins: [defaultSolanaRpcsPlugin()],
         embeddedWallets: {
           ethereum: {
-            createOnLogin: "users-without-wallets",
+            createOnLogin: "off",
           },
           solana: {
             createOnLogin: "off",

@@ -26,7 +26,16 @@ async function getBaseUsdcBalance(address: string): Promise<PositionView[]> {
     args: [address as `0x${string}`],
   });
   const amount = Number(raw) / 10 ** USDC_DECIMALS;
-  return [{ icon: null, chain: "base", symbol: "USDC", name: "USD Coin", amount, value: amount }];
+  return [
+    {
+      icon: null,
+      chain: "base",
+      symbol: "USDC",
+      name: "USD Coin",
+      amount,
+      value: amount,
+    },
+  ];
 }
 
 async function getSolanaUsdcBalance(address: string): Promise<PositionView[]> {
@@ -37,17 +46,38 @@ async function getSolanaUsdcBalance(address: string): Promise<PositionView[]> {
   try {
     const balance = await solanaConnection.getTokenAccountBalance(tokenAccount);
     const amount = balance.value.uiAmount ?? 0;
-    return [{ icon: null, chain: "solana", symbol: "USDC", name: "USD Coin", amount, value: amount }];
+    return [
+      {
+        icon: null,
+        chain: "solana",
+        symbol: "USDC",
+        name: "USD Coin",
+        amount,
+        value: amount,
+      },
+    ];
   } catch {
     // Token account doesn't exist — wallet holds no USDC.
-    return [{ icon: null, chain: "solana", symbol: "USDC", name: "USD Coin", amount: 0, value: 0 }];
+    return [
+      {
+        icon: null,
+        chain: "solana",
+        symbol: "USDC",
+        name: "USD Coin",
+        amount: 0,
+        value: 0,
+      },
+    ];
   }
 }
 
 export async function GET(req: NextRequest) {
   const addressesParam = req.nextUrl.searchParams.get("addresses");
   if (!addressesParam) {
-    return NextResponse.json({ error: "Missing addresses param" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing addresses param" },
+      { status: 400 },
+    );
   }
 
   const addresses = addressesParam.split(",").filter(Boolean);
@@ -64,7 +94,15 @@ export async function GET(req: NextRequest) {
 
   const positions = results
     .filter((r) => r.status === "fulfilled")
-    .map((r) => (r as PromiseFulfilledResult<{ address: string; positions: PositionView[] }>).value);
+    .map(
+      (r) =>
+        (
+          r as PromiseFulfilledResult<{
+            address: string;
+            positions: PositionView[];
+          }>
+        ).value,
+    );
 
   return NextResponse.json({ positions });
 }
