@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { usePrivy } from "@privy-io/react-auth";
 import { type ChainType, type PositionView, type WalletBalance } from "@/types/wallet";
 
 export function useFetchBalance(
@@ -6,6 +7,7 @@ export function useFetchBalance(
 ) {
   const [wallets, setWallets] = useState<WalletBalance[]>([]);
   const [loading, setLoading] = useState(true);
+  const { getAccessToken } = usePrivy();
 
   // Joining addresses into a single string avoids using an array as a useEffect
   // dependency, which would trigger on every render (new array reference each time).
@@ -20,7 +22,10 @@ export function useFetchBalance(
     async function fetchBalance() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/balances?addresses=${addressKey}`);
+        const token = await getAccessToken();
+        const res = await fetch(`/api/balances?addresses=${addressKey}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (!res.ok) return;
         const data = (await res.json()) as {
           positions: { address: string; positions: PositionView[] }[];

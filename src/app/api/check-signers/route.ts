@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyPrivyToken } from "@/lib/privy-server";
 
 export async function POST(req: NextRequest) {
+  const userId = await verifyPrivyToken(req);
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
   const appSecret = process.env.PRIVY_APP_SECRET;
   const signerId = process.env.NEXT_PUBLIC_PRIVY_SIGNER_ID;
@@ -20,11 +26,8 @@ export async function POST(req: NextRequest) {
 
   const credentials = Buffer.from(`${appId}:${appSecret}`).toString("base64");
 
-  const PRIVY_WALLET_ID_RE = /^[a-zA-Z0-9_-]{10,80}$/;
-
   const results = await Promise.all(
     walletIds.map(async (walletId) => {
-      if (!PRIVY_WALLET_ID_RE.test(walletId)) return false;
       const url = `https://auth.privy.io/api/v1/wallets/${walletId}`;
       const res = await fetch(url, {
         headers: {

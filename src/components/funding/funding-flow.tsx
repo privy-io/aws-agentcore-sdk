@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import {
   useConnectWallet,
+  usePrivy,
   type BaseConnectedWalletType,
   type EIP1193Provider,
   type WalletWithMetadata,
@@ -147,9 +148,14 @@ async function executeSolanaTransfer(
   signAndSendTransaction: ReturnType<
     typeof useSignAndSendTransaction
   >["signAndSendTransaction"],
-  opts?: { onSigned?: (signatureBase58: string) => void },
+  opts?: { onSigned?: (signatureBase58: string) => void; authToken?: string },
 ): Promise<{ transactionUrl: string }> {
-  const connection = new Connection(browserSolanaRpcEndpoint(), "confirmed");
+  const connection = new Connection(browserSolanaRpcEndpoint(), {
+    commitment: "confirmed",
+    httpHeaders: opts?.authToken
+      ? { Authorization: `Bearer ${opts.authToken}` }
+      : {},
+  });
   const fromPubkey = new PublicKey(wallet.address);
   const toPubkey = new PublicKey(to);
   const mintPubkey = new PublicKey(network.solana.usdcMint);
@@ -256,6 +262,7 @@ type FundingFlowProps = {
 };
 
 export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
+  const { getAccessToken } = usePrivy();
   const { signAndSendTransaction } = useSignAndSendTransaction();
   const signAndSendRef = useRef(signAndSendTransaction);
   signAndSendRef.current = signAndSendTransaction;
@@ -264,6 +271,8 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
   const connectWalletDismissLockRef = useRef(false);
   /** True briefly after `setStep` closes a child dialog so Radix `onOpenChange(false)` does not end the flow. */
   const stepTransitionDismissLockRef = useRef(false);
+  /** Stashed access token for use inside the connectWallet onSuccess callback. */
+  const authTokenRef = useRef<string | undefined>(undefined);
 
   function withStepTransitionLock(run: () => void) {
     stepTransitionDismissLockRef.current = true;
@@ -318,6 +327,7 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
                 setTransferTxUrl(`https://solscan.io/tx/${signatureBase58}${cluster}`);
                 setTransferStatus("confirming");
               },
+              authToken: authTokenRef.current,
             },
           );
           setTransferTxUrl(transactionUrl);
@@ -395,10 +405,11 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
     }
   }
 
-  function handleTransferConnect(amount: string) {
+  async function handleTransferConnect(amount: string) {
     transferAmountRef.current = amount;
     setTransferAmount(amount);
     connectWalletDismissLockRef.current = true;
+    authTokenRef.current = (await getAccessToken()) ?? undefined;
     connectWallet({
       walletChainType:
         selectedWallet?.chain === "base" ? "ethereum-only" : "solana-only",

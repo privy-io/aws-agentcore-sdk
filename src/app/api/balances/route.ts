@@ -4,6 +4,7 @@ import { Connection, PublicKey } from "@solana/web3.js";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { type PositionView } from "@/types/wallet";
 import { network } from "@/lib/network";
+import { verifyPrivyToken } from "@/lib/privy-server";
 
 const USDC_DECIMALS = 6;
 
@@ -72,6 +73,11 @@ async function getSolanaUsdcBalance(address: string): Promise<PositionView[]> {
 }
 
 export async function GET(req: NextRequest) {
+  const userId = await verifyPrivyToken(req);
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const addressesParam = req.nextUrl.searchParams.get("addresses");
   if (!addressesParam) {
     return NextResponse.json(

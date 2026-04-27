@@ -23,7 +23,7 @@ export default function AuthenticatedHome() {
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
   const [showFunding, setShowFunding] = useState(false);
 
-  const { user } = usePrivy();
+  const { user, getAccessToken } = usePrivy();
 
   const privyWallets = (user?.linkedAccounts ?? []).filter(
     (a: LinkedAccountWithMetadata): a is WalletWithMetadata =>
@@ -41,11 +41,16 @@ export default function AuthenticatedHome() {
       return;
     }
 
-    fetch("/api/check-signers", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ walletIds }),
-    })
+    getAccessToken().then((token) =>
+      fetch("/api/check-signers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ walletIds }),
+      })
+    )
       .then((r) => r.json())
       .then((data: { connected?: boolean }) => {
         if (data.connected) setAgentConnected(true);

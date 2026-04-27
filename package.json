@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@privy-io/node": "^0.16.0",
     "@privy-io/react-auth": "^3.22.1",
     "@radix-ui/react-dialog": "^1.1.15",
     "@solana-program/memo": "^0.11.0",
