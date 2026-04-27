@@ -12,6 +12,7 @@ import { SOLANA_USDC_MINT } from "@/lib/constants";
 type ReceiveFundsModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onClose: () => void;
   onBack: () => void;
   address: string;
   chain: ChainType;
@@ -31,6 +32,7 @@ function truncateAddress(address: string): string {
 export function ReceiveFundsModal({
   open,
   onOpenChange,
+  onClose,
   onBack,
   address,
   chain,
@@ -55,15 +57,14 @@ export function ReceiveFundsModal({
             >
               <ArrowLeft className="size-4" />
             </button>
-            <Dialog.Close asChild>
-              <button
-                type="button"
-                aria-label="Close"
-                className="rounded-full bg-[#f1f2f9] p-2 text-[#64668b] transition-colors hover:bg-[#e2e3f0]"
-              >
-                <X className="size-4" />
-              </button>
-            </Dialog.Close>
+            <button
+              type="button"
+              aria-label="Close"
+              onClick={onClose}
+              className="rounded-full bg-[#f1f2f9] p-2 text-[#64668b] transition-colors hover:bg-[#e2e3f0]"
+            >
+              <X className="size-4" />
+            </button>
           </div>
 
           {/* Title */}

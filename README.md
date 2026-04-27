@@ -20,19 +20,6 @@ This app is the user-facing frontend that agent developers deploy alongside thei
 
 ---
 
-## Environment Variables
-
-Create a `.env.local` file in the project root with the following:
-
-```bash
-# Privy
-NEXT_PUBLIC_PRIVY_APP_ID=        # Your Privy app ID (public)
-PRIVY_APP_SECRET=                # Your Privy app secret (server-only)
-NEXT_PUBLIC_PRIVY_SIGNER_ID=     # Authorization key ID from Privy dashboard (public)
-```
-
----
-
 ## Getting Your Privy Credentials
 
 ### 1. App ID and App Secret
@@ -53,6 +40,19 @@ The signer ID is the ID of an **authorization key** you create in the Privy dash
 4. Copy the **Key ID** that is generated → `NEXT_PUBLIC_PRIVY_SIGNER_ID`
 
 > The key ID looks like `zr17anh9dpiqno1iaref9jpx`. It is safe to expose publicly -it is just an identifier, not a secret.
+
+---
+
+## Environment Variables
+
+Create a `.env.local` file in the project root with the following:
+
+```bash
+# Privy
+NEXT_PUBLIC_PRIVY_APP_ID=        # Your Privy app ID (public)
+PRIVY_APP_SECRET=                # Your Privy app secret (server-only)
+NEXT_PUBLIC_PRIVY_SIGNER_ID=     # Authorization key ID from Privy dashboard (public)
+```
 
 ---
 
@@ -87,6 +87,31 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
+<<<<<<< Updated upstream
+=======
+## Running in testnet
+
+Set `NEXT_PUBLIC_NETWORK_MODE=testnet` in `.env.local` (the default in
+`.env.example`) and use these faucets to fund wallets:
+
+| Asset | Network | Faucet |
+|:------|:--------|:-------|
+| ETH (gas on Base) | Base Sepolia | [Alchemy](https://www.alchemy.com/faucets/base-sepolia), [QuickNode](https://faucet.quicknode.com/base/sepolia) |
+| USDC | Base Sepolia | [Circle Faucet](https://faucet.circle.com) → select "Base Sepolia" |
+| SOL (rent/fees on Solana) | Solana Devnet | [Solana Faucet](https://faucet.solana.com), [Sol Faucet](https://solfaucet.com) |
+| USDC | Solana Devnet | [Circle Faucet](https://faucet.circle.com) → select "Solana Devnet" |
+
+Base Sepolia gas is microscopic (~0.01 ETH is plenty); Solana rent needs
+a fraction of a SOL per active account. Funding takes ~30 seconds end to
+end.
+
+The "Pay with card" option in Add Funds is disabled in testnet — Stripe's
+hosted onramp only deals in real mainnet USDC. Use the "Transfer from
+wallet" or "Receive funds" options instead.
+
+---
+
+>>>>>>> Stashed changes
 ## Available Commands
 
 ```bash

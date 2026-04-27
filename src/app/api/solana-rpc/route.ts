@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SOLANA_MAINNET_RPC } from "@/lib/constants";
+import { network } from "@/lib/network";
 
 /**
- * Proxies Solana JSON-RPC POSTs to mainnet from the server so the browser
- * avoids 403 from the public cluster endpoint.
+ * Proxies Solana JSON-RPC POSTs to the configured cluster from the server so
+ * the browser avoids 403 from the public endpoint.
  */
 export async function POST(req: NextRequest) {
   const body = await req.text();
-  const upstream = await fetch(SOLANA_MAINNET_RPC, {
+  const upstream = await fetch(network.solana.rpcUrl, {
     method: "POST",
     headers: {
       Accept: "application/json",

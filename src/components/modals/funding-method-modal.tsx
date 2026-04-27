@@ -9,6 +9,7 @@ export type FundingMethod = "card" | "transfer" | "receive";
 type FundingMethodModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onClose: () => void;
   onBack: () => void;
   onSelect: (method: FundingMethod) => void;
 };
@@ -22,6 +23,7 @@ const FUNDING_METHODS = [
 export function FundingMethodModal({
   open,
   onOpenChange,
+  onClose,
   onBack,
   onSelect,
 }: FundingMethodModalProps) {
@@ -42,15 +44,14 @@ export function FundingMethodModal({
             >
               <ArrowLeft className="size-4" />
             </button>
-            <Dialog.Close asChild>
-              <button
-                type="button"
-                aria-label="Close"
-                className="rounded-full bg-[#f1f2f9] p-2 text-[#64668b] transition-colors hover:bg-[#e2e3f0]"
-              >
-                <X className="size-4" />
-              </button>
-            </Dialog.Close>
+            <button
+              type="button"
+              aria-label="Close"
+              onClick={onClose}
+              className="rounded-full bg-[#f1f2f9] p-2 text-[#64668b] transition-colors hover:bg-[#e2e3f0]"
+            >
+              <X className="size-4" />
+            </button>
           </div>
 
           {/* Title */}
