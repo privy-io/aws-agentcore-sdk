@@ -20,6 +20,29 @@ This app is the user-facing frontend that agent developers deploy alongside thei
 
 ---
 
+## Getting Your Privy Credentials
+
+### 1. App ID and App Secret
+
+1. Go to the [Privy Dashboard](https://dashboard.privy.io)
+2. Select your app (or create one)
+3. Navigate to **Settings → API keys**
+4. Copy the **App ID** → `NEXT_PUBLIC_PRIVY_APP_ID`
+5. Copy the **App secret** → `PRIVY_APP_SECRET` (treat this like a password -never expose it client-side)
+
+### 2. Authorization Key (Signer ID)
+
+The signer ID is the ID of an **authorization key** you create in the Privy dashboard. This is used to grant an agent permission to sign transactions on behalf of a user's wallet.
+
+1. In the Privy Dashboard, go to **Wallets → Authorization keys**
+2. Click **Create key**
+3. Give it a name (e.g. `aws-agent`)
+4. Copy the **Key ID** that is generated → `NEXT_PUBLIC_PRIVY_SIGNER_ID`
+
+> The key ID looks like `zr17anh9dpiqno1iaref9jpx`. It is safe to expose publicly -it is just an identifier, not a secret.
+
+---
+
 ## Environment Variables
 
 Create a `.env.local` file in the project root with the following:
@@ -55,29 +78,6 @@ family (e.g. "Send USDC on Base from an external wallet").
 Start in `testnet` to develop against faucet USDC — see
 [Running in testnet](#running-in-testnet) below for faucet links. Switch to
 `mainnet` for production deployments.
-
----
-
-## Getting Your Privy Credentials
-
-### 1. App ID and App Secret
-
-1. Go to the [Privy Dashboard](https://dashboard.privy.io)
-2. Select your app (or create one)
-3. Navigate to **Settings → API keys**
-4. Copy the **App ID** → `NEXT_PUBLIC_PRIVY_APP_ID`
-5. Copy the **App secret** → `PRIVY_APP_SECRET` (treat this like a password -never expose it client-side)
-
-### 2. Authorization Key (Signer ID)
-
-The signer ID is the ID of an **authorization key** you create in the Privy dashboard. This is used to grant an agent permission to sign transactions on behalf of a user's wallet.
-
-1. In the Privy Dashboard, go to **Wallets → Authorization keys**
-2. Click **Create key**
-3. Give it a name (e.g. `aws-agent`)
-4. Copy the **Key ID** that is generated → `NEXT_PUBLIC_PRIVY_SIGNER_ID`
-
-> The key ID looks like `zr17anh9dpiqno1iaref9jpx`. It is safe to expose publicly -it is just an identifier, not a secret.
 
 ---
 
@@ -119,7 +119,7 @@ Set `NEXT_PUBLIC_NETWORK_MODE=testnet` in `.env.local` (the default in
 
 | Asset | Network | Faucet |
 |:------|:--------|:-------|
-| ETH (gas on Base) | Base Sepolia | [Coinbase Developer Platform](https://portal.cdp.coinbase.com/products/faucet), [Alchemy](https://www.alchemy.com/faucets/base-sepolia), [QuickNode](https://faucet.quicknode.com/base/sepolia) |
+| ETH (gas on Base) | Base Sepolia | [Alchemy](https://www.alchemy.com/faucets/base-sepolia), [QuickNode](https://faucet.quicknode.com/base/sepolia) |
 | USDC | Base Sepolia | [Circle Faucet](https://faucet.circle.com) → select "Base Sepolia" |
 | SOL (rent/fees on Solana) | Solana Devnet | [Solana Faucet](https://faucet.solana.com), [Sol Faucet](https://solfaucet.com) |
 | USDC | Solana Devnet | [Circle Faucet](https://faucet.circle.com) → select "Solana Devnet" |

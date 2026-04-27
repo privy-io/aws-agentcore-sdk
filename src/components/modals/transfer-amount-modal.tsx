@@ -11,6 +11,7 @@ import { network } from "@/lib/network";
 type TransferAmountModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onClose: () => void;
   onBack: () => void;
   chain: ChainType;
   onConnect: (amount: string) => void;
@@ -19,6 +20,7 @@ type TransferAmountModalProps = {
 export function TransferAmountModal({
   open,
   onOpenChange,
+  onClose,
   onBack,
   chain,
   onConnect,
@@ -80,15 +82,14 @@ export function TransferAmountModal({
             >
               <ArrowLeft className="size-4" />
             </button>
-            <Dialog.Close asChild>
-              <button
-                type="button"
-                aria-label="Close"
-                className="rounded-full bg-[#f1f2f9] p-2 text-[#64668b] transition-colors hover:bg-[#e2e3f0]"
-              >
-                <X className="size-4" />
-              </button>
-            </Dialog.Close>
+            <button
+              type="button"
+              aria-label="Close"
+              onClick={onClose}
+              className="rounded-full bg-[#f1f2f9] p-2 text-[#64668b] transition-colors hover:bg-[#e2e3f0]"
+            >
+              <X className="size-4" />
+            </button>
           </div>
 
           {/* Title */}

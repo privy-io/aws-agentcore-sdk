@@ -20,8 +20,11 @@ export async function POST(req: NextRequest) {
 
   const credentials = Buffer.from(`${appId}:${appSecret}`).toString("base64");
 
+  const PRIVY_WALLET_ID_RE = /^[a-zA-Z0-9_-]{10,80}$/;
+
   const results = await Promise.all(
     walletIds.map(async (walletId) => {
+      if (!PRIVY_WALLET_ID_RE.test(walletId)) return false;
       const url = `https://auth.privy.io/api/v1/wallets/${walletId}`;
       const res = await fetch(url, {
         headers: {

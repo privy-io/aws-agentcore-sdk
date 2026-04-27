@@ -11,6 +11,7 @@ import { PrivyBadge } from "@/components/ui/privy-badge";
 type WalletPickerModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onClose: () => void;
   wallets: WalletWithMetadata[];
   onSelect: (address: string, chain: ChainType) => void;
 };
@@ -18,6 +19,7 @@ type WalletPickerModalProps = {
 export function WalletPickerModal({
   open,
   onOpenChange,
+  onClose,
   wallets,
   onSelect,
 }: WalletPickerModalProps) {
@@ -29,15 +31,14 @@ export function WalletPickerModal({
           <div className="flex flex-col items-center">
             {/* Close button */}
             <div className="flex h-14 w-full items-start justify-end p-4">
-              <Dialog.Close asChild>
-                <button
-                  type="button"
-                  aria-label="Close"
-                  className="rounded-full bg-[#f1f2f9] p-1.5 transition-colors hover:bg-[#e2e3f0]"
-                >
-                  <X className="size-4 text-[#64668b]" />
-                </button>
-              </Dialog.Close>
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={onClose}
+                className="rounded-full bg-[#f1f2f9] p-1.5 transition-colors hover:bg-[#e2e3f0]"
+              >
+                <X className="size-4 text-[#64668b]" />
+              </button>
             </div>
 
             <div className="flex w-full flex-col items-center gap-8 px-6 pb-6">
