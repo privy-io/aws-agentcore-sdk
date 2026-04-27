@@ -9,6 +9,7 @@ import {
 } from "@privy-io/react-auth";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { TestnetBanner } from "@/components/ui/testnet-banner";
 import { ConnectAgentModal } from "@/components/modals/connect-agent-modal";
 import { FundingFlow } from "@/components/funding/funding-flow";
 import { SetupCard } from "@/components/ui/setup-card";
@@ -70,6 +71,7 @@ export default function AuthenticatedHome() {
   return (
     <main className="min-h-screen w-full overflow-x-hidden bg-[#FAFAFA]">
       <AppHeader />
+      <TestnetBanner />
 
       {/* Success toast */}
       <div

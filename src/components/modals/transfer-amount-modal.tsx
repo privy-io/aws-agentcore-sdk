@@ -6,6 +6,7 @@ import { ArrowLeft, X } from "lucide-react";
 
 import { PrivyBadge } from "@/components/ui/privy-badge";
 import { type ChainType } from "@/types/wallet";
+import { network } from "@/lib/network";
 
 type TransferAmountModalProps = {
   open: boolean;
@@ -25,7 +26,7 @@ export function TransferAmountModal({
   const [amount, setAmount] = useState("0");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const chainName = chain === "base" ? "Base" : "Solana";
+  const chainLabel = chain === "base" ? network.base.specificLabel : network.solana.specificLabel;
   const amountIsValid = parseFloat(amount) > 0;
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,7 +139,7 @@ export function TransferAmountModal({
           <div className="flex flex-col gap-4 px-6 pb-6">
             <div className="flex items-center justify-center">
               <span className="rounded-full bg-[#f1f2f9] px-3 py-1.5 text-xs font-medium text-[#64668b]">
-                Sending on {chainName}
+                Sending on {chainLabel}
               </span>
             </div>
 

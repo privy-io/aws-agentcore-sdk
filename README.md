@@ -29,7 +29,32 @@ Create a `.env.local` file in the project root with the following:
 NEXT_PUBLIC_PRIVY_APP_ID=        # Your Privy app ID (public)
 PRIVY_APP_SECRET=                # Your Privy app secret (server-only)
 NEXT_PUBLIC_PRIVY_SIGNER_ID=     # Authorization key ID from Privy dashboard (public)
+
+# Network mode — optional. One of: mainnet | testnet. Defaults to mainnet.
+NEXT_PUBLIC_NETWORK_MODE=testnet
 ```
+
+### Network mode (`NEXT_PUBLIC_NETWORK_MODE`)
+
+Controls which chains the app reads balances from, which chains external-wallet
+transfers target, and whether card funding is enabled. Optional — defaults
+to `mainnet` if unset, so upgrading without changing your env leaves
+behavior unchanged.
+
+| Value | Base | Solana | Card funding (Stripe) |
+|:------|:-----|:-------|:----------------------|
+| `mainnet` (default) | Base (chain id 8453) | Solana mainnet-beta | ✅ enabled |
+| `testnet` | Base Sepolia (chain id 84532) | Solana Devnet | ❌ disabled (Stripe onramp is mainnet-only) |
+
+A thin yellow banner appears directly under the app header when
+`NEXT_PUBLIC_NETWORK_MODE=testnet`, so a developer tab left open with
+testnet config can't be mistaken for a production session. Individual
+funding options in the "Add funds" modal are labeled with the target chain
+family (e.g. "Send USDC on Base from an external wallet").
+
+Start in `testnet` to develop against faucet USDC — see
+[Running in testnet](#running-in-testnet) below for faucet links. Switch to
+`mainnet` for production deployments.
 
 ---
 
@@ -87,6 +112,28 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
+## Running in testnet
+
+Set `NEXT_PUBLIC_NETWORK_MODE=testnet` in `.env.local` (the default in
+`.env.example`) and use these faucets to fund wallets:
+
+| Asset | Network | Faucet |
+|:------|:--------|:-------|
+| ETH (gas on Base) | Base Sepolia | [Coinbase Developer Platform](https://portal.cdp.coinbase.com/products/faucet), [Alchemy](https://www.alchemy.com/faucets/base-sepolia), [QuickNode](https://faucet.quicknode.com/base/sepolia) |
+| USDC | Base Sepolia | [Circle Faucet](https://faucet.circle.com) → select "Base Sepolia" |
+| SOL (rent/fees on Solana) | Solana Devnet | [Solana Faucet](https://faucet.solana.com), [Sol Faucet](https://solfaucet.com) |
+| USDC | Solana Devnet | [Circle Faucet](https://faucet.circle.com) → select "Solana Devnet" |
+
+Base Sepolia gas is microscopic (~0.01 ETH is plenty); Solana rent needs
+a fraction of a SOL per active account. Funding takes ~30 seconds end to
+end.
+
+The "Pay with card" option in Add Funds is disabled in testnet — Stripe's
+hosted onramp only deals in real mainnet USDC. Use the "Transfer from
+wallet" or "Receive funds" options instead.
+
+---
+
 ## Available Commands
 
 ```bash
@@ -115,11 +162,13 @@ pnpm lint     # ESLint
 | `src/components/modals/wallet-picker-modal.tsx` | Select wallet to fund |
 | `src/components/ui/aws-wordmark.tsx` | AWS SVG logo |
 | `src/components/ui/copy-button.tsx` | Copy-to-clipboard icon button |
+| `src/components/ui/testnet-banner.tsx` | Yellow "testnet mode" strip shown when `NEXT_PUBLIC_NETWORK_MODE=testnet` |
 | `src/components/ui/setup-card.tsx` | Onboarding step card |
 | `src/components/ui/fullscreen-loader.tsx` | Loading spinner shown during Privy init |
 | `src/components/wallet/wallet-balance-card.tsx` | Per-wallet balance display |
 | `src/hooks/use-fetch-balance.ts` | Client hook for wallet balances |
 | `src/lib/env.ts` | Public environment variable validation |
 | `src/lib/format.ts` | USD formatting utility |
+| `src/lib/network.ts` | Network mode + per-chain config (USDC addresses, RPCs, labels) |
 | `src/types/wallet.ts` | Shared wallet type definitions |
 | `src/providers/providers.tsx` | PrivyProvider config and modal appearance |
