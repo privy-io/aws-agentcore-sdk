@@ -20,7 +20,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             createOnLogin: "off",
           },
           solana: {
-            createOnLogin: "users-without-wallets",
+            createOnLogin: "off",
           },
         },
         loginMethods: ["google", "email", "sms"],
