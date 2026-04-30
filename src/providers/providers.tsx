@@ -7,8 +7,7 @@ import {
 } from "@privy-io/react-auth/solana";
 import { env } from "@/lib/env";
 
-const AWS_HOSTED_LOGO_URL =
-  "https://download.logo.wine/logo/Amazon_Web_Services/Amazon_Web_Services-Logo.wine.png";
+const AWS_HOSTED_LOGO_URL = "/aws-logo.png";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (

@@ -169,7 +169,7 @@ async function executeSolanaTransfer(
     }
     if (fromTokenAccount.amount < transferLamports) {
       throw new Error(
-        `Not enough USDC in Phantom for a ${amount} USDC transfer (SPL USDC on Solana mainnet).`,
+        `Not enough USDC in your ${network.solana.specificLabel} wallet for a ${amount} USDC transfer (SPL USDC on ${network.solana.specificLabel}).`,
       );
     }
   } catch (e) {
@@ -222,7 +222,8 @@ async function executeSolanaTransfer(
   });
 
   const signatureBase58 = toSignatureBase58(signature);
-  const transactionUrl = `https://solscan.io/tx/${signatureBase58}`;
+  const cluster = network.isTestnet ? "?cluster=devnet" : "";
+  const transactionUrl = `https://solscan.io/tx/${signatureBase58}${cluster}`;
   opts?.onSigned?.(signatureBase58);
 
   await waitForSignatureConfirmed(
@@ -259,7 +260,7 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
   const signAndSendRef = useRef(signAndSendTransaction);
   signAndSendRef.current = signAndSendTransaction;
 
-  /** True while Privy `connectWallet` is resolving (Phantom) — inner dialogs must not call `handleClose`. */
+  /** True while Privy `connectWallet` is resolving — inner dialogs must not call `handleClose`. */
   const connectWalletDismissLockRef = useRef(false);
   /** True briefly after `setStep` closes a child dialog so Radix `onOpenChange(false)` does not end the flow. */
   const stepTransitionDismissLockRef = useRef(false);
@@ -313,7 +314,8 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
             signAndSendRef.current,
             {
               onSigned: (signatureBase58) => {
-                setTransferTxUrl(`https://solscan.io/tx/${signatureBase58}`);
+                const cluster = network.isTestnet ? "?cluster=devnet" : "";
+                setTransferTxUrl(`https://solscan.io/tx/${signatureBase58}${cluster}`);
                 setTransferStatus("confirming");
               },
             },
@@ -410,6 +412,7 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
         onOpenChange={(isOpen) => {
           if (!isOpen && !shouldIgnoreInnerDismiss()) handleClose();
         }}
+        onClose={handleClose}
         wallets={wallets}
         onSelect={handleWalletSelect}
       />
@@ -419,6 +422,7 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
         onOpenChange={(isOpen) => {
           if (!isOpen && !shouldIgnoreInnerDismiss()) handleClose();
         }}
+        onClose={handleClose}
         onBack={handleBack}
         onSelect={handleMethodSelect}
         selectedChain={selectedWallet?.chain ?? null}
@@ -431,6 +435,7 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
             onOpenChange={(isOpen) => {
               if (!isOpen && !shouldIgnoreInnerDismiss()) handleClose();
             }}
+            onClose={handleClose}
             onBack={() =>
               withStepTransitionLock(() => setStep("method-picker"))
             }
@@ -443,6 +448,7 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
             onOpenChange={(isOpen) => {
               if (!isOpen && !shouldIgnoreInnerDismiss()) handleClose();
             }}
+            onClose={handleClose}
             onBack={() =>
               withStepTransitionLock(() => setStep("method-picker"))
             }
