@@ -1,15 +1,17 @@
-# AWS AgentCore SDK -Privy Frontend
+# AWS AgentCore SDK - Privy Frontend
 
-A reference frontend for agent developers integrating [AWS AgentCore SDK](https://aws.amazon.com/agentcore/) with [Privy](https://privy.io) as the embedded wallet provider.
+A reference frontend for agent developers integrating [AWS AgentCore SDK](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html) with [Privy](https://privy.io) as the embedded wallet provider.
+
+> **Note:** This is an open source repository jointly maintained by the [Privy](https://privy.io) team and the AWS AgentCore Bedrock team. It is a representative example of an integration flow intended to help agent developers with their integration. It is **not** a fully productionized codebase.
 
 ## Overview
 
-This app is the user-facing frontend that agent developers deploy alongside their AgentCore-powered application. Users arrive here to:
+This app is the user-facing frontend that agent developers can deploy alongside their AgentCore-powered application. Users arrive here to:
 
-1. **Log in** -authenticate via Privy (email, social, or wallet)
-2. **View their wallets** -see USDC balances on Base and Solana
-3. **Delegate access to the agent** -grant the agent application permission to sign transactions on their behalf using Privy session signers
-4. **Fund their wallets** -add USDC via card (Stripe hosted onramp), receive (QR code), or transfer from an external wallet
+1. **Log in** - authenticate via Privy (email, social, or wallet)
+2. **View their wallets** - see USDC balances on Base and Solana
+3. **Delegate access to the agent** - grant your agent application permission to sign transactions on their behalf
+4. **Fund their wallets** - add USDC via card (Stripe hosted onramp), receiving funds (QR code), or transfer from an external wallet
 
 - **Framework:** Next.js 15.5.x (App Router, Turbopack)
 - **Language:** TypeScript
@@ -28,7 +30,7 @@ This app is the user-facing frontend that agent developers deploy alongside thei
 2. Select your app (or create one)
 3. Navigate to **Settings → API keys**
 4. Copy the **App ID** → `NEXT_PUBLIC_PRIVY_APP_ID`
-5. Copy the **App secret** → `PRIVY_APP_SECRET` (treat this like a password -never expose it client-side)
+5. Copy the **App secret** → `PRIVY_APP_SECRET` (treat this like a password - never expose it client-side)
 
 ### 2. Authorization Key (Signer ID)
 
@@ -60,22 +62,16 @@ NEXT_PUBLIC_NETWORK_MODE=testnet
 ### Network mode (`NEXT_PUBLIC_NETWORK_MODE`)
 
 Controls which chains the app reads balances from, which chains external-wallet
-transfers target, and whether card funding is enabled. Optional — defaults
+transfers target, and whether card funding is enabled. Defaults
 to `mainnet` if unset, so upgrading without changing your env leaves
 behavior unchanged.
 
-| Value | Base | Solana | Card funding (Stripe) |
-|:------|:-----|:-------|:----------------------|
-| `mainnet` (default) | Base (chain id 8453) | Solana mainnet-beta | ✅ enabled |
-| `testnet` | Base Sepolia (chain id 84532) | Solana Devnet | ❌ disabled (Stripe onramp is mainnet-only) |
+| Value               | Base                          | Solana              | Card funding (Stripe)                       |
+| :------------------ | :---------------------------- | :------------------ | :------------------------------------------ |
+| `mainnet` (default) | Base (chain id 8453)          | Solana mainnet-beta | ✅ enabled                                  |
+| `testnet`           | Base Sepolia (chain id 84532) | Solana Devnet       | ❌ disabled (Stripe onramp is mainnet-only) |
 
-A thin yellow banner appears directly under the app header when
-`NEXT_PUBLIC_NETWORK_MODE=testnet`, so a developer tab left open with
-testnet config can't be mistaken for a production session. Individual
-funding options in the "Add funds" modal are labeled with the target chain
-family (e.g. "Send USDC on Base from an external wallet").
-
-Start in `testnet` to develop against faucet USDC — see
+Start in `testnet` to develop against faucet USDC. See
 [Running in testnet](#running-in-testnet) below for faucet links. Switch to
 `mainnet` for production deployments.
 
@@ -117,12 +113,12 @@ Open [http://localhost:3000](http://localhost:3000).
 Set `NEXT_PUBLIC_NETWORK_MODE=testnet` in `.env.local` (the default in
 `.env.example`) and use these faucets to fund wallets:
 
-| Asset | Network | Faucet |
-|:------|:--------|:-------|
-| ETH (gas on Base) | Base Sepolia | [Alchemy](https://www.alchemy.com/faucets/base-sepolia), [QuickNode](https://faucet.quicknode.com/base/sepolia) |
-| USDC | Base Sepolia | [Circle Faucet](https://faucet.circle.com) → select "Base Sepolia" |
-| SOL (rent/fees on Solana) | Solana Devnet | [Solana Faucet](https://faucet.solana.com), [Sol Faucet](https://solfaucet.com) |
-| USDC | Solana Devnet | [Circle Faucet](https://faucet.circle.com) → select "Solana Devnet" |
+| Asset                     | Network       | Faucet                                                                                                          |
+| :------------------------ | :------------ | :-------------------------------------------------------------------------------------------------------------- |
+| USDC                      | Base Sepolia  | [Circle Faucet](https://faucet.circle.com) → select "Base Sepolia"                                              |
+| USDC                      | Solana Devnet | [Circle Faucet](https://faucet.circle.com) → select "Solana Devnet"                                             |
+| ETH (gas on Base)         | Base Sepolia  | [Alchemy](https://www.alchemy.com/faucets/base-sepolia), [QuickNode](https://faucet.quicknode.com/base/sepolia) |
+| SOL (rent/fees on Solana) | Solana Devnet | [Solana Faucet](https://faucet.solana.com), [Sol Faucet](https://solfaucet.com)                                 |
 
 Base Sepolia gas is microscopic (~0.01 ETH is plenty); Solana rent needs
 a fraction of a SOL per active account. Funding takes ~30 seconds end to
@@ -144,31 +140,18 @@ pnpm lint     # ESLint
 
 ---
 
-## Key Files
+## Maintainers
 
-| File | Description |
-|---|---|
-| `src/app/page.tsx` | Auth-gated home page, splash + login auto-open |
-| `src/app/layout.tsx` | Root layout, font registration |
-| `src/app/globals.css` | Tailwind imports and shared component classes |
-| `src/app/error.tsx` | App-level error boundary page |
-| `src/app/not-found.tsx` | 404 page |
-| `src/app/api/balances/route.ts` | Server-side USDC balance queries (Base + Solana) |
-| `src/app/api/check-signers/route.ts` | Server-side signer presence check |
-| `src/components/sections/home-screen.tsx` | Authenticated home screen orchestrator |
-| `src/components/layout/app-header.tsx` | Top navigation bar |
-| `src/components/layout/user-menu.tsx` | User dropdown (email + logout) |
-| `src/components/modals/connect-agent-modal.tsx` | Grant agent wallet access flow |
-| `src/components/modals/wallet-picker-modal.tsx` | Select wallet to fund |
-| `src/components/ui/aws-wordmark.tsx` | AWS SVG logo |
-| `src/components/ui/copy-button.tsx` | Copy-to-clipboard icon button |
-| `src/components/ui/testnet-banner.tsx` | Yellow "testnet mode" strip shown when `NEXT_PUBLIC_NETWORK_MODE=testnet` |
-| `src/components/ui/setup-card.tsx` | Onboarding step card |
-| `src/components/ui/fullscreen-loader.tsx` | Loading spinner shown during Privy init |
-| `src/components/wallet/wallet-balance-card.tsx` | Per-wallet balance display |
-| `src/hooks/use-fetch-balance.ts` | Client hook for wallet balances |
-| `src/lib/env.ts` | Public environment variable validation |
-| `src/lib/format.ts` | USD formatting utility |
-| `src/lib/network.ts` | Network mode + per-chain config (USDC addresses, RPCs, labels) |
-| `src/types/wallet.ts` | Shared wallet type definitions |
-| `src/providers/providers.tsx` | PrivyProvider config and modal appearance |
+This repository is jointly maintained by the [Privy](https://privy.io) team and the AWS AgentCore Bedrock team. See [MAINTAINERS.md](./MAINTAINERS.md) for the full list of maintainers and contact information.
+
+## Contributions
+
+This repository is not currently open to external contributions.
+
+Please submit an Issue and fill out the issue with as much information as possible if you have found a bug in need of fixing.
+
+You can also submit an Issue to request new features, or to suggest changes to existing features.
+
+## License
+
+Apache-2.0. See [LICENSE.md](./LICENSE.md).
