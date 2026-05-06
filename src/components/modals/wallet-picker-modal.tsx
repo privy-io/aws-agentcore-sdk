@@ -29,9 +29,6 @@ export function WalletPickerModal({
         <Dialog.Overlay className="fixed inset-0 z-[100] bg-black/30 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <Dialog.Content className="fixed left-1/2 top-1/2 z-[100] w-[360px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-[0px_5px_5px_0px_rgba(0,0,0,0.05),0px_4px_13px_0px_rgba(0,0,0,0.1)] duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
           <div className="flex flex-col items-center">
-            {/* Header: back button left, close button right.
-                Wallet picker is the first step of the funding flow, so back
-                exits the flow — same as close. */}
             <div className="flex h-14 w-full items-center justify-between p-4">
               <button
                 type="button"

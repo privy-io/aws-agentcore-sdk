@@ -20,8 +20,6 @@ export function useFetchBalance(
 ) {
   const addressKey = addresses.map((a) => a.address).join(",");
 
-  // SWR keeps the previously-fetched data while revalidating, so the UI
-  // doesn't flash to a loading state on each background refresh.
   const { data, isLoading } = useSWR<BalancesResponse>(
     addressKey ? `/api/balances?addresses=${addressKey}` : null,
     fetchBalances,
