@@ -22,6 +22,10 @@ This app is the user-facing frontend that agent developers can deploy alongside 
 
 ---
 
+## Prerequisites
+
+Before starting development on this frontend, please begin onboarding to the [AWS AgentCore SDK](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html). In that onboarding flow, you will be asked to provide the credentials created in the flow below.
+
 ## Getting Your Privy Credentials
 
 ### 1. App ID and App Secret
@@ -34,16 +38,16 @@ This app is the user-facing frontend that agent developers can deploy alongside 
 
 ### 2. Authorization Key (Signer ID)
 
-The signer ID is the ID of an **authorization key** you create in the Privy dashboard. This is used to grant an agent permission to sign transactions on behalf of a user's wallet.
+The signer ID is the ID of an [**authorization key**](https://docs.privy.io/controls/authorization-keys/keys/create/key#authorization-keys) you create in the Privy dashboard. This is used to grant an agent permission to sign transactions on behalf of a user's wallet.
 
-1. In the Privy Dashboard, go to **Wallets → Authorization keys**
-2. Click **Create key**
+1. In the Privy Dashboard, go to **Wallet infrastructure → Authorization**
+2. Click **New key**
 3. Give it a name (e.g. `aws-agent`)
 4. Copy the **Key ID** that is generated → `NEXT_PUBLIC_PRIVY_SIGNER_ID`
 
 > The key ID looks like `zr17anh9dpiqno1iaref9jpx`. It is safe to expose publicly -it is just an identifier, not a secret.
 
----
+## Paste the `App ID`, `App Secret` and `Signer ID` into the environment file created below.
 
 ## Environment Variables
 
@@ -79,6 +83,8 @@ Start in `testnet` to develop against faucet USDC. See
 
 ## Funding Wallets
 
+This frontend includes flows for allowing the user to add funds to their Ethereum and Solana wallets. At the moment, the flow only reads the balance of USDC on Base in their Ehtereum wallet and USDC on Solana in their Solana wallet. The onramp methods below only support funding with USDC on these chains.
+
 The "Add funds" flow supports three methods:
 
 ### Pay with card (Stripe hosted onramp)
@@ -96,6 +102,10 @@ Displays a QR code and copyable address for the selected wallet. The QR value us
 Connects an external wallet (MetaMask, Phantom, etc.) via Privy's `useConnectWallet` hook and executes a USDC transfer programmatically -ERC-20 `transfer` on Base, SPL token transfer on Solana.
 
 ---
+
+## Login Methods
+
+Currently, the default login options are SMS, Email, and Google Auth. These are set in the `loginMethods` config in `providers.tsx`. The full list of login methods can be found here. Some login methods such as SMS and Google Auth need to be explicitly enabled in your Privy Dashboard by going to **User management → Authentication**.
 
 ## Setup
 
