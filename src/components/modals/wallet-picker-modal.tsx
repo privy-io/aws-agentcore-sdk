@@ -1,7 +1,7 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import { X } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import { type WalletWithMetadata } from "@privy-io/react-auth";
 import { type ChainType } from "@/types/wallet";
 import { toChainType } from "@/lib/chain";
@@ -29,8 +29,18 @@ export function WalletPickerModal({
         <Dialog.Overlay className="fixed inset-0 z-[100] bg-black/30 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <Dialog.Content className="fixed left-1/2 top-1/2 z-[100] w-[360px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-[0px_5px_5px_0px_rgba(0,0,0,0.05),0px_4px_13px_0px_rgba(0,0,0,0.1)] duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
           <div className="flex flex-col items-center">
-            {/* Close button */}
-            <div className="flex h-14 w-full items-start justify-end p-4">
+            {/* Header: back button left, close button right.
+                Wallet picker is the first step of the funding flow, so back
+                exits the flow — same as close. */}
+            <div className="flex h-14 w-full items-center justify-between p-4">
+              <button
+                type="button"
+                aria-label="Go back"
+                onClick={onClose}
+                className="rounded-full bg-[#f1f2f9] p-1.5 text-[#64668b] transition-colors hover:bg-[#e2e3f0]"
+              >
+                <ArrowLeft className="size-4" />
+              </button>
               <button
                 type="button"
                 aria-label="Close"
@@ -59,7 +69,10 @@ export function WalletPickerModal({
               <div className="flex w-full flex-col gap-3">
                 {wallets.map((wallet) => {
                   const chain: ChainType = toChainType(wallet.chainType);
-                  const label = chain === "base" ? network.base.label : network.solana.label;
+                  const label =
+                    chain === "base"
+                      ? network.base.label
+                      : network.solana.label;
                   return (
                     <button
                       key={wallet.address}

@@ -23,6 +23,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-qr-code": "^2.0.18",
+    "swr": "^2.4.1",
     "tailwindcss-animate": "^1.0.7",
     "viem": "^2.37.6"
   },

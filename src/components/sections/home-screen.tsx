@@ -122,7 +122,7 @@ export default function AuthenticatedHome() {
                 />
                 <SetupCard
                   title="Add funds"
-                  description="Fund either one of your wallets so your agent could use it."
+                  description="Fund your wallet so your agent could use it."
                   icon={<CircleDollarSign className="size-5 text-[#040217]" />}
                   completed={hasFunds}
                   onClick={hasFunds ? undefined : () => setShowFunding(true)}
