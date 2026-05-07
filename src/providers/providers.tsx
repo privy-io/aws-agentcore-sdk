@@ -23,7 +23,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             createOnLogin: "off",
           },
         },
-        loginMethods: ["google", "email", "sms"],
         appearance: {
           walletChainType: "ethereum-and-solana",
           logo: AWS_HOSTED_LOGO_URL,

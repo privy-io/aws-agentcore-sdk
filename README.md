@@ -105,7 +105,7 @@ Connects an external wallet (MetaMask, Phantom, etc.) via Privy's `useConnectWal
 
 ## Login Methods
 
-Currently, the default login options are SMS, Email, and Google Auth. These are set in the `loginMethods` config in `providers.tsx`. The full list of login methods can be found here. Some login methods such as SMS and Google Auth need to be explicitly enabled in your Privy Dashboard by going to **User management → Authentication**.
+Currently, the default login option is email. The full list of login methods can be found [here](https://docs.privy.io/basics/get-started/dashboard/configure-login-methods#configure-login-methods). Some login methods such as SMS and Google Auth need to be explicitly enabled in your Privy Dashboard by going to **User management → Authentication**.
 
 ## Setup
 
