@@ -15,7 +15,7 @@ const securityHeaders = [
       "img-src 'self' data: https://*.link.com",
       "font-src 'self'",
       "frame-src https://*.privy.io https://crypto-js.stripe.com https://js.stripe.com https://*.js.stripe.com https://hooks.stripe.com https://link.com https://*.link.com",
-      "connect-src 'self' https://*.privy.io https://api.stripe.com https://link.com https://*.link.com https://api.mainnet-beta.solana.com https://api.devnet.solana.com https://mainnet.base.org https://sepolia.base.org",
+      "connect-src 'self' https://*.privy.io https://api.stripe.com https://link.com https://*.link.com https://explorer-api.walletconnect.com https://api.mainnet-beta.solana.com https://api.devnet.solana.com https://mainnet.base.org https://sepolia.base.org",
     ].join("; "),
   },
 ];
