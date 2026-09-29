@@ -398,7 +398,7 @@ export function FundingFlow({
           chain: wallet.chain,
         },
         fiat: {
-          source: { assets: ["usd", "eur"] },
+          // Use the SDK's supported currencies and configured provider routing.
           environment: env.fiatOnrampEnvironment,
         },
       });
@@ -411,7 +411,7 @@ export function FundingFlow({
           error.message === "User exited flow");
       if (!cancelled) {
         setFundingError(
-          "Could not complete card funding. Please try again or choose another method.",
+          "Could not complete funding. Please try again or choose another method.",
         );
       }
       withStepTransitionLock(() => setStep("method-picker"));

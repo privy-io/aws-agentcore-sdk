@@ -71,7 +71,7 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-describe("card funding", () => {
+describe("fiat funding", () => {
   it.each([
     [baseAddress, "base"],
     [secondBaseAddress, "base"],
@@ -86,7 +86,7 @@ describe("card funding", () => {
     expect(mocks.depositFunds).toHaveBeenCalledTimes(1);
     expect(mocks.depositFunds).toHaveBeenCalledWith({
       destination: { wallet: address, asset: "usdc", chain },
-      fiat: { source: { assets: ["usd", "eur"] }, environment: "production" },
+      fiat: { environment: "production" },
     });
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(onFundingComplete).not.toHaveBeenCalled();
@@ -134,7 +134,7 @@ describe("card funding", () => {
     chooseWallet(secondBaseAddress);
     chooseCard();
     await act(async () => funding.reject(new Error("Funding unavailable")));
-    expect(screen.getByRole("alert").textContent).toContain("Could not complete card funding");
+    expect(screen.getByRole("alert").textContent).toContain("Could not complete funding");
 
     mocks.depositFunds.mockResolvedValue({ method: "fiat", status: "confirmed" });
     chooseCard();

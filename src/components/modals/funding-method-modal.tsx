@@ -27,7 +27,7 @@ type MethodDef = {
 };
 
 const METHOD_DEFS: readonly MethodDef[] = [
-  { method: "card", label: "Pay with card", icon: CreditCard },
+  { method: "card", label: "Pay with card or bank", icon: CreditCard },
   { method: "transfer", label: "Transfer from wallet", icon: Inbox },
   { method: "receive", label: "Receive funds", icon: QrCode },
 ] as const;
