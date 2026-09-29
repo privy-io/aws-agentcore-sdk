@@ -11,7 +11,7 @@ This app is the user-facing frontend that agent developers can deploy alongside 
 1. **Log in** - authenticate via Privy (email, social, or wallet)
 2. **View their wallets** - see USDC balances on Base and Solana
 3. **Delegate access to the agent** - grant your agent application permission to sign transactions on their behalf
-4. **Fund their wallets** - add USDC via card (Stripe hosted onramp), receiving funds (QR code), or transfer from an external wallet
+4. **Fund their wallets** - add USDC via Privy's funding modal (Stripe Embedded Components), receiving funds (QR code), or transfer from an external wallet
 
 - **Framework:** Next.js 15.5.x (App Router, Turbopack)
 - **Language:** TypeScript
@@ -61,6 +61,9 @@ NEXT_PUBLIC_PRIVY_SIGNER_ID=     # Authorization key ID from Privy dashboard (pu
 
 # Network mode — optional. One of: mainnet | testnet. Defaults to mainnet.
 NEXT_PUBLIC_NETWORK_MODE=testnet
+
+# Fiat funding environment — optional: production | sandbox. Defaults to production.
+NEXT_PUBLIC_FIAT_ONRAMP_ENVIRONMENT=production
 ```
 
 ### Network mode (`NEXT_PUBLIC_NETWORK_MODE`)
@@ -83,15 +86,34 @@ Start in `testnet` to develop against faucet USDC. See
 
 ## Funding Wallets
 
-This frontend includes flows for allowing the user to add funds to their Ethereum and Solana wallets. At the moment, the flow only reads the balance of USDC on Base in their Ehtereum wallet and USDC on Solana in their Solana wallet. The onramp methods below only support funding with USDC on these chains.
+This frontend includes flows for allowing the user to add funds to their Ethereum and Solana wallets. The flow reads the balance of USDC on Base in their Ethereum wallet and USDC on Solana in their Solana wallet. The onramp methods below only support funding with USDC on these chains.
 
 The "Add funds" flow supports three methods:
 
-### Pay with card (Stripe hosted onramp)
+### Pay with card (Stripe Embedded Components)
 
-Clicking "Pay with card" opens [Stripe's hosted onramp](https://docs.stripe.com/crypto/onramp/stripe-hosted) in a new tab. The user selects their destination currency (USDC) and network (Base or Solana) directly in the Stripe UI.
+Clicking "Pay with card" opens Privy's funding modal through [`useDepositFunds`](https://docs.privy.io/wallets/funding/use-deposit-funds#stripe-embedded-components-onramp). It passes the selected wallet's receive address, USDC, and Base or Solana as the destination. Stripe Embedded Components handles checkout inside the app. A cancelled flow returns to the method picker; a failed flow allows retrying or choosing another method. After submission, balances refresh immediately and continue polling every 15 seconds while funds settle.
 
-The hosted onramp requires no server-side secret key -it accepts `destination_currency` and `destination_network` as URL query parameters. See the [Stripe hosted onramp docs](https://docs.stripe.com/crypto/onramp/stripe-hosted) for available parameters and customization options.
+Each agent developer must configure funding on **their own Privy app** (the app identified by `NEXT_PUBLIC_PRIVY_APP_ID`):
+
+1. Open that app in the [Privy Dashboard](https://dashboard.privy.io) and enable fiat funding and Stripe in its funding settings. Complete any required onboarding for your app.
+2. Install this repository's dependencies with `pnpm install`. The integration uses `@privy-io/react-auth` 3.46.0 and `@stripe/crypto`; the SDK manages Stripe sessions, so no Stripe secret key is needed in this frontend.
+3. Set `NEXT_PUBLIC_NETWORK_MODE=mainnet`. For live purchases, use `NEXT_PUBLIC_FIAT_ONRAMP_ENVIRONMENT=production` (the default). Rebuild/restart after changing public environment variables.
+
+The template limits fiat currencies to USD and EUR for the Stripe funding path. Availability still depends on your app's funding configuration and the user's location; this template does not guarantee country coverage. Additional providers and currencies require separate configuration and validation.
+
+`useDepositFunds` is experimental, so verify its API and the funding flow when upgrading the SDK. The Content Security Policy in `next.config.ts` permits the Stripe and Link scripts, connections, and frames required by the embedded checkout; preserve these permissions when customizing deployment headers.
+
+#### Testing card funding in Stripe sandbox
+
+Use both of these settings in `.env.local`, with sandbox funding enabled for your Privy app:
+
+```bash
+NEXT_PUBLIC_NETWORK_MODE=mainnet
+NEXT_PUBLIC_FIAT_ONRAMP_ENVIRONMENT=sandbox
+```
+
+Stripe sandbox simulates purchases using **mainnet chain identifiers**. It does not fund Base Sepolia or Solana Devnet and does not credit real on-chain balances. Test both Base and Solana destinations, cancellation, errors/retry, and a successful sandbox checkout. Use `NEXT_PUBLIC_NETWORK_MODE=testnet` with faucet tokens to test real on-chain transfers without spending real funds.
 
 ### Receive (QR code)
 
@@ -134,8 +156,8 @@ Base Sepolia gas is microscopic (~0.01 ETH is plenty); Solana rent needs
 a fraction of a SOL per active account. Funding takes ~30 seconds end to
 end.
 
-The "Pay with card" option in Add Funds is disabled in testnet — Stripe's
-hosted onramp only deals in real mainnet USDC. Use the "Transfer from
+The "Pay with card" option in Add Funds is disabled in testnet — Stripe
+funding uses mainnet chain identifiers, including in sandbox. Use the "Transfer from
 wallet" or "Receive funds" options instead.
 
 ---
@@ -146,6 +168,7 @@ wallet" or "Receive funds" options instead.
 pnpm dev      # Start dev server with Turbopack
 pnpm build    # Production build
 pnpm lint     # ESLint
+pnpm test     # Funding flow regression tests
 ```
 
 ---

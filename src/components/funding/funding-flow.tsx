@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import {
   useConnectWallet,
+  useDepositFunds,
   type BaseConnectedWalletType,
   type EIP1193Provider,
   type WalletWithMetadata,
@@ -46,7 +47,8 @@ import {
   type TransferStatus,
 } from "@/components/modals/transfer-pending-modal";
 import { type ChainType } from "@/types/wallet";
-import { network, STRIPE_ONRAMP_BASE_NETWORK } from "@/lib/network";
+import { network } from "@/lib/network";
+import { env } from "@/lib/env";
 
 const ERC20_TRANSFER_ABI = [
   {
@@ -240,6 +242,7 @@ async function executeSolanaTransfer(
 type FundingStep =
   | "wallet-picker"
   | "method-picker"
+  | "card"
   | "receive"
   | "transfer-amount"
   | "transfer-pending";
@@ -253,9 +256,17 @@ type FundingFlowProps = {
   wallets: WalletWithMetadata[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onFundingComplete: () => void;
 };
 
-export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
+export function FundingFlow({
+  wallets,
+  open,
+  onOpenChange,
+  onFundingComplete,
+}: FundingFlowProps) {
+  const { depositFunds } = useDepositFunds();
+  const cardFundingInProgressRef = useRef(false);
   const { signAndSendTransaction } = useSignAndSendTransaction();
   const signAndSendRef = useRef(signAndSendTransaction);
   signAndSendRef.current = signAndSendTransaction;
@@ -278,6 +289,7 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
   function shouldIgnoreInnerDismiss(): boolean {
     return (
       connectWalletDismissLockRef.current ||
+      cardFundingInProgressRef.current ||
       stepTransitionDismissLockRef.current
     );
   }
@@ -291,6 +303,7 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
     useState<TransferStatus>("sending");
   const [transferError, setTransferError] = useState<string | undefined>();
   const [transferTxUrl, setTransferTxUrl] = useState<string | undefined>();
+  const [fundingError, setFundingError] = useState<string | undefined>();
 
   // Refs so the connectWallet onSuccess callback always reads the latest values
   // (the callback is registered once at mount and would otherwise capture stale closures)
@@ -351,39 +364,74 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
     setTransferAmount("");
     setTransferError(undefined);
     setTransferTxUrl(undefined);
+    setFundingError(undefined);
   }
 
   function handleWalletSelect(address: string, chain: ChainType) {
+    if (cardFundingInProgressRef.current) return;
     const wallet = { address, chain };
     withStepTransitionLock(() => {
       selectedWalletRef.current = wallet;
       setSelectedWallet(wallet);
+      setFundingError(undefined);
       setStep("method-picker");
     });
   }
 
   function handleBack() {
+    setFundingError(undefined);
     withStepTransitionLock(() => setStep("wallet-picker"));
   }
 
+  async function handleCardFunding(wallet: SelectedWallet) {
+    // Stripe sandbox also uses mainnet destinations; never fund a testnet wallet.
+    if (network.isTestnet || cardFundingInProgressRef.current) return;
+    cardFundingInProgressRef.current = true;
+    setFundingError(undefined);
+    withStepTransitionLock(() => setStep("card"));
+
+    try {
+      await depositFunds({
+        destination: {
+          wallet: wallet.address,
+          asset: "usdc",
+          chain: wallet.chain,
+        },
+        fiat: {
+          source: { assets: ["usd", "eur"] },
+          environment: env.fiatOnrampEnvironment,
+        },
+      });
+    } catch (error) {
+      // The SDK currently rejects with plain Errors for both ways of dismissing
+      // its funding modal. Cancellation should let the user choose another method.
+      const cancelled =
+        error instanceof Error &&
+        (error.message === "User cancelled funding" ||
+          error.message === "User exited flow");
+      if (!cancelled) {
+        setFundingError(
+          "Could not complete card funding. Please try again or choose another method.",
+        );
+      }
+      withStepTransitionLock(() => setStep("method-picker"));
+      return;
+    } finally {
+      cardFundingInProgressRef.current = false;
+    }
+
+    handleClose();
+    // A submitted purchase may settle later; the existing balance polling continues.
+    onFundingComplete();
+  }
+
   function handleMethodSelect(method: FundingMethod) {
-    if (!selectedWallet) return;
+    if (!selectedWallet || cardFundingInProgressRef.current) return;
+    setFundingError(undefined);
 
     switch (method) {
       case "card": {
-        // Card is mainnet-only; modal disables the button in testnet — guard anyway.
-        if (network.isTestnet) return;
-        const params = new URLSearchParams({
-          destination_currency: "usdc",
-          destination_network:
-            selectedWallet.chain === "base" ? STRIPE_ONRAMP_BASE_NETWORK : "solana",
-        });
-        handleClose();
-        window.open(
-          `https://crypto.link.com/?${params.toString()}`,
-          "_blank",
-          "noopener,noreferrer",
-        );
+        void handleCardFunding(selectedWallet);
         break;
       }
       case "transfer":
@@ -426,6 +474,8 @@ export function FundingFlow({ wallets, open, onOpenChange }: FundingFlowProps) {
         onBack={handleBack}
         onSelect={handleMethodSelect}
         selectedChain={selectedWallet?.chain ?? null}
+        errorMessage={fundingError}
+        preventFocusRestore={step === "card"}
       />
 
       {selectedWallet && (
