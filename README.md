@@ -96,7 +96,7 @@ Clicking "Pay with card or bank" opens Privy's funding modal through [`useDeposi
 
 Each agent developer must configure funding on **their own Privy app** (the app identified by `NEXT_PUBLIC_PRIVY_APP_ID`):
 
-1. Open that app's [Funding page in the Privy Dashboard](https://dashboard.privy.io/apps?page=funding) and enable the desired funding methods and providers. For Meld's additional currencies and geographic coverage, select **Configure** on Meld and complete its KYB/production-access onboarding. See the [configuration guide](https://docs.privy.io/financial-flows/deposits/configuration#card-onramps).
+1. In the Privy Dashboard, select the app and open **Financial flows → Funding** (`https://dashboard.privy.io/apps/<your-app-id>/funding`). Enable the desired providers. For a Stripe-and-Meld integration, keep Stripe enabled, configure Meld, and disable direct MoonPay and Coinbase. Enabling the main **Card onramps** switch initially enables both Stripe and MoonPay. Meld sandbox can be enabled for testing; production requires its KYB/production-access onboarding. See the [configuration guide](https://docs.privy.io/financial-flows/deposits/configuration#card-onramps).
 2. Install this repository's dependencies with `pnpm install`. The integration uses `@privy-io/react-auth` 3.46.0 and `@stripe/crypto`; the SDK manages Stripe sessions, so no Stripe secret key is needed in this frontend.
 3. Set `NEXT_PUBLIC_NETWORK_MODE=mainnet`. For live purchases, use `NEXT_PUBLIC_FIAT_ONRAMP_ENVIRONMENT=production` (the default). Rebuild/restart after changing public environment variables.
 
@@ -115,9 +115,13 @@ NEXT_PUBLIC_FIAT_ONRAMP_ENVIRONMENT=sandbox
 
 Stripe sandbox accepts **mainnet chain identifiers** and does not move real funds. The app displays mainnet balances, so a sandbox confirmation need not increase the displayed balance; any test-token fulfillment depends on the provider and destination. Test both Base and Solana destinations, cancellation, errors/retry, and a successful sandbox checkout. Use `NEXT_PUBLIC_NETWORK_MODE=testnet` with faucet tokens to test on-chain transfers without spending real funds.
 
+For Stripe, select **Link** in the amount screen's payment-method picker when multiple options are available. Enter the amount before selecting the payment method, since updating the amount refreshes quotes. Link then offers the supported payment instruments inside the embedded checkout. Use the [documented Stripe sandbox values](https://docs.privy.io/wallets/funding/use-deposit-funds#test-in-sandbox-mode).
+
 #### Validating Meld
 
 Configure Meld for the app and environment being tested, then use the same "Pay with card or bank" flow. Select a currency supported by your configured Meld providers and verify the available payment methods, provider checkout, return to the app, and cancellation/retry behavior. Sandbox support varies by provider; confirm the selected checkout is in test mode. Component tests mock the SDK boundary and do not establish provider availability or validate a Meld purchase.
+
+To isolate Meld on a test app, temporarily disable other fiat providers, including Stripe, while leaving Meld sandbox enabled. Start a new funding flow and use an amount that meets the selected provider's minimum. The quote response should identify `meld-sandbox`; checkout may show the underlying provider's branding. A provider configuration error must be resolved before this can count as a successful Meld test. Restore the desired providers afterward.
 
 ### Receive (QR code)
 
