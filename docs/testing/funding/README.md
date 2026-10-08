@@ -1,5 +1,19 @@
 # Local funding sandbox evidence
 
+## End-to-end Stripe sandbox recording
+
+[Watch the recording (MP4)](stripe-sandbox-solana-flow.mp4)
+
+[![Stripe sandbox checkout confirmation](stripe-sandbox-recording-poster.png)](stripe-sandbox-solana-flow.mp4)
+
+Recorded from the PR's local production build on October 8, 2026. The recording follows **Add funds → Solana → Pay with card or bank → Link → sandbox verification → test-card entry → approval → Transaction confirmed → wallet dashboard** for 50 USDC on Solana.
+
+The checkout uses Stripe sandbox, test identity details, and the documented `4242` test card. No real funds move. The confirmation screen reports that the purchase is processing; this does not demonstrate mainnet settlement. Wallet addresses are obscured and idle pauses are trimmed. Provider responses and application behavior are unmodified.
+
+The recording covers Stripe. Completed Meld purchases and manual Base checkout remain untested.
+
+## Earlier screenshots
+
 Manually tested from the local frontend on September 29, 2026, using USDC on Solana. These screenshots were cropped to the checkout UI to remove browser chrome, personal information, wallet details, and URL parameters. They show sandbox behavior and do not demonstrate mainnet settlement or geographic coverage.
 
 | Flow | Observed result |
