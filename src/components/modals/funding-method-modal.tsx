@@ -16,6 +16,8 @@ type FundingMethodModalProps = {
   onSelect: (method: FundingMethod) => void;
   /** Chain picked in the previous step — drives network-aware subtitles. */
   selectedChain: ChainType | null;
+  errorMessage?: string;
+  preventFocusRestore?: boolean;
 };
 
 type MethodDef = {
@@ -25,7 +27,7 @@ type MethodDef = {
 };
 
 const METHOD_DEFS: readonly MethodDef[] = [
-  { method: "card", label: "Pay with card", icon: CreditCard },
+  { method: "card", label: "Pay with card or bank", icon: CreditCard },
   { method: "transfer", label: "Transfer from wallet", icon: Inbox },
   { method: "receive", label: "Receive funds", icon: QrCode },
 ] as const;
@@ -61,13 +63,19 @@ export function FundingMethodModal({
   onBack,
   onSelect,
   selectedChain,
+  errorMessage,
+  preventFocusRestore = false,
 }: FundingMethodModalProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[100] bg-black/10 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
 
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-[100] w-[360px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-[0px_8px_36px_rgba(55,65,81,0.15)] duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+        <Dialog.Content
+          onCloseAutoFocus={(event) => {
+            if (preventFocusRestore) event.preventDefault();
+          }}
+          className="fixed left-1/2 top-1/2 z-[100] w-[360px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl bg-white shadow-[0px_8px_36px_rgba(55,65,81,0.15)] duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
 
           {/* Header: back button left, close button right */}
           <div className="flex items-center justify-between p-4">
@@ -98,6 +106,12 @@ export function FundingMethodModal({
               Select a method for funding your wallet.
             </Dialog.Description>
           </div>
+
+          {errorMessage && (
+            <p role="alert" className="px-6 pt-4 text-sm text-red-700">
+              {errorMessage}
+            </p>
+          )}
 
           {/* Method buttons */}
           <div className="flex flex-col gap-3 px-6 pb-6 pt-6">

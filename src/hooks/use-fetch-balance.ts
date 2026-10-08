@@ -20,7 +20,7 @@ export function useFetchBalance(
 ) {
   const addressKey = addresses.map((a) => a.address).join(",");
 
-  const { data, isLoading } = useSWR<BalancesResponse>(
+  const { data, isLoading, mutate } = useSWR<BalancesResponse>(
     addressKey ? `/api/balances?addresses=${addressKey}` : null,
     fetchBalances,
     {
@@ -49,5 +49,5 @@ export function useFetchBalance(
   // Treat empty-address case as not-loading so callers don't spin forever.
   const loading = addressKey.length > 0 && isLoading;
 
-  return { wallets, loading };
+  return { wallets, loading, refresh: mutate };
 }
