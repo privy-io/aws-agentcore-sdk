@@ -60,7 +60,11 @@ export default function AuthenticatedHome() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  const { wallets: walletBalances, loading: balancesLoading } = useFetchBalance(
+  const {
+    wallets: walletBalances,
+    loading: balancesLoading,
+    refresh: refreshBalances,
+  } = useFetchBalance(
     privyWallets.map((w) => ({
       address: w.address,
       chainType: toChainType(w.chainType),
@@ -188,6 +192,11 @@ export default function AuthenticatedHome() {
           open={showFunding}
           onOpenChange={setShowFunding}
           wallets={privyWallets}
+          onFundingComplete={() => {
+            void refreshBalances().catch(() => {
+              // Balance polling retries if this immediate refresh fails.
+            });
+          }}
         />
       )}
     </main>

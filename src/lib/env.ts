@@ -15,7 +15,16 @@ function require(name: string, value: string | undefined): string {
   return value;
 }
 
+function resolveFiatOnrampEnvironment(): "production" | "sandbox" {
+  const value = process.env.NEXT_PUBLIC_FIAT_ONRAMP_ENVIRONMENT ?? "production";
+  if (value === "production" || value === "sandbox") return value;
+  throw new Error(
+    `Invalid NEXT_PUBLIC_FIAT_ONRAMP_ENVIRONMENT="${value}". Must be "production" or "sandbox".`,
+  );
+}
+
 export const env = {
   privyAppId: require("NEXT_PUBLIC_PRIVY_APP_ID", process.env.NEXT_PUBLIC_PRIVY_APP_ID),
   privySignerId: require("NEXT_PUBLIC_PRIVY_SIGNER_ID", process.env.NEXT_PUBLIC_PRIVY_SIGNER_ID),
+  fiatOnrampEnvironment: resolveFiatOnrampEnvironment(),
 } as const;

@@ -97,6 +97,3 @@ export const network = Object.freeze({
     specificLabel: SOLANA_SPECIFIC_LABEL[MODE],
   }),
 });
-
-/** Stripe's hosted onramp only accepts mainnet destinations. */
-export const STRIPE_ONRAMP_BASE_NETWORK = "base";
